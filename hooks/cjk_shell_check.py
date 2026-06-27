@@ -27,13 +27,13 @@ def main():
     if not command or not re.search(CJK, command):
         return  # 无中文 → 不管
 
-    # 写文件重定向（排除 /dev/null 和 >&fd）
-    writes_file = re.search(r'>>?\s*(?!/dev/null\b)(?!&)\S', command)
-    # heredoc 同时写文件： cat > file <<EOF
-    heredoc_to_file = ('<<' in command) and re.search(r'>\s*[^<\s]', command)
+    # 写文件重定向：`>` 须在行首或空白后（真·重定向 `cmd > file` / `cmd >file`），
+    # 从而排除 `2>`(fd 前是数字)、`>&`((?!&))、以及邮箱/泛型 `<...>` 的闭合 `>`(前是字母，如 com>)；
+    # /dev/null 也排除。`cat > file <<EOF` 这种真·写文件仍会命中。
+    writes_file = re.search(r'(?:^|\s)>>?\s*(?!/dev/null\b)(?!&)\S', command)
 
-    if not (writes_file or heredoc_to_file):
-        return  # 中文只是参数/搜索词，不写文件 → 不管
+    if not writes_file:
+        return  # 中文只是参数/搜索词，或仅 heredoc 喂给 stdin/Python（推荐写法）→ 不管
 
     json.dump({
         "hookSpecificOutput": {
