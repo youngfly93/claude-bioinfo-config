@@ -72,6 +72,10 @@ description: >-
 3. 标题格式：`图 X. 描述` / `表 X. 描述`，居中显示
 4. 支持 .png/.jpg/.tiff
 5. 表格用三线表风格；图表编号连续，与正文引用一致
+6. 若报告需**新生成或重画**任何图（汇总图、占位补图等），脚本顶部统一
+   `source("~/.claude/assets/figure-style/nature_theme.R")`，优先用 `nature_*` 模块
+   （volcano/km/enrich_dot/pca/box_sig/forest/oncoprint/heatmap）+ `save_nature()` 导出——
+   和交付其余图一套风格、CJK 安全；不用 Python 画图。
 
 ## 生成后验证
 

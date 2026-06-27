@@ -47,6 +47,13 @@ find . -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname 
    - 图中数值是否能追溯到结果表或脚本。
    - 如果图由 R/Python 生成，同时检查绘图脚本中的输入、过滤、阈值和保存参数。
 
+5. **风格统一（house 样式）**
+   - 同一交付内所有图是否共用一套配色/字体/尺寸（一个交付一套风格），还是每张各画各的。
+   - 生成脚本是否 source 了 house 真源 `~/.claude/assets/figure-style/nature_theme.R`，并用其中的
+     `theme_nature` + `nature_volcano/km/enrich_dot/pca/box_sig/forest/oncoprint/heatmap` 等模块
+     （这些模块内置 Nature 配色、阈值线/显著性标注、CJK 安全字体）。
+   - 风格不一致 / 各自为政 → 建议统一 source 这份重画，而非逐张手调。
+
 ## 技术检查
 
 **客观项先跑确定性脚本**（分辨率/像素尺寸/白底比例/透明/矢量），不靠肉眼估：
@@ -81,4 +88,6 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/fig_check.py check <figures目录或单图> 
 
 - 先报告，不擅自覆盖原图。
 - 不用“好看/不好看”替代具体证据。
-- 若用户要求修图/重画，统一用 `nature-figure` 的 **R 后端**（ggplot2 / ComplexHeatmap），优先改生成脚本而不是手工处理输出图；不用 Python 画图。
+- 若用户要求修图/重画，统一用 `nature-figure` 的 **R 后端**（ggplot2 / ComplexHeatmap），并在脚本顶部
+  `source("~/.claude/assets/figure-style/nature_theme.R")`、优先调 `nature_*` 模块 + `save_nature()` 导出，
+  保证全交付一套风格、CJK 安全；优先改生成脚本而不是手工处理输出图；不用 Python 画图。
