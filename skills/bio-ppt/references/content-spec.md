@@ -23,7 +23,7 @@
 - `notes`: 该页演讲备注，写入 PPT 备注页。**极简 deck 强烈建议每页都写**——页面越空，越靠口头讲。
 - 页脚签名自动从 meta 注入，无需每页写。
 
-## 9 种版式
+## 10 种版式
 
 ### cover 封面
 ```json
@@ -61,6 +61,19 @@
 ```
 `muted:true` 把该栏整体灰化（她常用来弱化"非重点"那一栏）。
 
+### table 极简表格（Table-1 / 指标汇总）
+```json
+{"type":"table","title_en":"COHORT","title_zh":"队列基线 (n=1688)",
+ "headers":["变量","对照 (n=832)","病例 (n=856)","P"],
+ "rows":[["年龄","58.5 (12.2)","59.0 (12.9)","0.43"],
+         ["FPG","5.64 (1.43)","8.07 (3.12)","<0.001"]],
+ "side_label":"02. method"}
+```
+极简风：表头标志红下划线、行间淡分隔线、**无竖线无填充**。首列左对齐(主色)，其余居中(灰)。
+用于**队列特征表(Table-1)、模型指标汇总表**。`table_width` 可调(默认 10.4in)。
+- 数字必须**溯源真实结果文件**(如 `Table_1_baseline.csv`、Phase4 `mice_model_auc_summary.csv`)，绝不杜撰。
+- 建议 ≤ 7 行 × ≤ 5 列；表注/显著性说明放该页 `notes`。
+
 ### list 列表（编号或圆点）
 ```json
 {"type":"list","title_en":"KEY FINDINGS","title_zh":"核心发现",
@@ -88,7 +101,7 @@
 
 ### closing 结尾
 ```json
-{"type":"closing","title_en":"thank you","title_zh":"谢谢","links":["@<user>","yourlab.studio"]}
+{"type":"closing","title_en":"thank you","title_zh":"谢谢","links":["@yourhandle","yourlab.studio"]}
 ```
 
 ## 颜色/字体速记（改风格去 scripts/build_deck.py 顶部）

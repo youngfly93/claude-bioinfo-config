@@ -319,10 +319,76 @@ def slide_closing(prs, s):
     add_footer(sl, s.get("_handle"), s.get("_site"), dark)
     return sl
 
+def _cell_border_bottom(cell, color, emu=9525):
+    """给单元格加底边线（极简表格只用横线，无竖线无填充）。"""
+    tcPr = cell._tc.get_or_add_tcPr()
+    ex = tcPr.find(qn("a:lnB"))
+    if ex is not None: tcPr.remove(ex)
+    ln = tcPr.makeelement(qn("a:lnB"), {"w": str(emu), "cap": "flat"})
+    fill = ln.makeelement(qn("a:solidFill"), {})
+    clr = fill.makeelement(qn("a:srgbClr"), {"val": str(color)})
+    fill.append(clr); ln.append(fill)
+    tcPr.insert(0, ln)  # 线必须排在填充之前
+
+def _set_cell(cell, text, *, bold=False, color=INK, size=14, align=PP_ALIGN.LEFT):
+    cell.vertical_anchor = MSO_ANCHOR.MIDDLE
+    cell.margin_left = Inches(0.12); cell.margin_right = Inches(0.12)
+    cell.margin_top = 0; cell.margin_bottom = 0
+    tf = cell.text_frame; tf.clear()
+    p = tf.paragraphs[0]; p.alignment = align
+    r = p.add_run(); r.text = text
+    set_run_fonts(r, F_BODY, F_CJK)
+    r.font.size = Pt(size); r.font.bold = bold; r.font.color.rgb = color
+
+def slide_table(prs, s):
+    """极简表格：表头标志红下划线、行间淡分隔线、无竖线无填充。用于 Table-1 / 指标汇总。"""
+    sl = prs.slides.add_slide(prs.slide_layouts[6])
+    dark = s.get("dark", False); add_bg(sl, INK if dark else WHITE)
+    tcol = WHITE if dark else INK
+    tline = []
+    if s.get("title_en"): tline.append({"t": s["title_en"], "f": F_TITLE_SANS, "s": 24, "c": tcol, "spacing": 2})
+    if s.get("title_zh"): tline.append({"t": ("  " if tline else "") + s["title_zh"], "f": F_TITLE_SANS, "s": 18, "c": INK3})
+    if s.get("title") and not tline: tline.append({"t": s["title"], "f": F_TITLE_SANS, "s": 24, "c": tcol, "spacing": 2})
+    if tline:
+        add_text(sl, Inches(1.2), Inches(0.9), Inches(10.93), Inches(0.8), [tline], align=PP_ALIGN.CENTER)
+    headers = s.get("headers", []); rows = s.get("rows", [])
+    ncol = len(headers) or (len(rows[0]) if rows else 1)
+    nrow = len(rows) + (1 if headers else 0)
+    tw = Inches(s.get("table_width", 10.4)); rh = Inches(0.5)
+    th = int(rh * nrow)
+    left = int((EMU_W - tw) / 2); top = Inches(2.1)
+    gf = sl.shapes.add_table(nrow, ncol, left, top, tw, th); table = gf.table
+    tbl = table._tbl; tblPr = tbl.find(qn("a:tblPr"))
+    if tblPr is not None:
+        for a in ("firstRow", "bandRow"): tblPr.set(a, "0")
+        sid = tblPr.find(qn("a:tableStyleId"))
+        if sid is None: sid = tblPr.makeelement(qn("a:tableStyleId"), {}); tblPr.append(sid)
+        sid.text = "{2D5ABB26-0587-4C30-8999-92F81FD0307C}"  # No Style, No Grid
+    cw = int(tw / ncol)
+    for c in table.columns: c.width = cw
+    for r in table.rows: r.height = rh
+    body_color = INK2 if not dark else WHITE85
+    r0 = 0
+    if headers:
+        for j, h in enumerate(headers):
+            cell = table.cell(0, j)
+            _set_cell(cell, str(h), bold=True, color=tcol, size=15,
+                      align=PP_ALIGN.LEFT if j == 0 else PP_ALIGN.CENTER)
+            _cell_border_bottom(cell, ACCENT, emu=12700)   # 表头标志红下划线
+        r0 = 1
+    for i, row in enumerate(rows):
+        for j, val in enumerate(row):
+            cell = table.cell(r0 + i, j)
+            _set_cell(cell, str(val), color=(tcol if j == 0 else body_color), size=14,
+                      align=PP_ALIGN.LEFT if j == 0 else PP_ALIGN.CENTER)
+            _cell_border_bottom(cell, MUTED, emu=6350)      # 行间淡分隔线
+    add_side_label(sl, s.get("side_label"), dark); add_footer(sl, s.get("_handle"), s.get("_site"), dark)
+    return sl
+
 BUILDERS = {
     "cover": slide_cover, "section": slide_section, "statement": slide_statement, "content": slide_content,
     "two_column": slide_two_column, "list": slide_list, "photo": slide_photo, "photo_pair": slide_photo_pair,
-    "closing": slide_closing,
+    "table": slide_table, "closing": slide_closing,
 }
 
 # ──────────────────────────── 字体自动安装 ────────────────────────────

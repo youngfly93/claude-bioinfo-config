@@ -1,0 +1,11 @@
+{
+  "name": "bio-delivery",
+  "displayName": "生信交付/发表工作流 (bio-*)",
+  "version": "0.1.0",
+  "description": "生信外包交付到发表的完整工作流：开工对齐→出图(house样式·CJK安全)→审计(数字台账)→报告→打包，外加机械守护钩子与自定义子代理。",
+  "author": { "name": "youngfly93" },
+  "repository": "https://github.com/youngfly93/claude-bioinfo-config",
+  "license": "MIT",
+  "keywords": ["bioinformatics", "delivery", "audit", "report", "CJK", "ggplot", "complexheatmap"],
+  "hooks": "./hooks/hooks.json"
+}

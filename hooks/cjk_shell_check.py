@@ -35,15 +35,16 @@ def main():
     if not (writes_file or heredoc_to_file):
         return  # 中文只是参数/搜索词，不写文件 → 不管
 
-    result = {
-        "decision": "warn",
-        "reason": (
-            "⚠️ 检测到用 shell 重定向把中文写进文件（echo/cat/printf/heredoc > 文件）。"
-            "shell 在部分 locale 下会弄乱中文编码，是高频报错来源。"
-            "建议改用 Python 显式写：with open(path,'w',encoding='utf-8') as f: f.write(...)。"
-        ),
-    }
-    json.dump(result, sys.stdout)
+    json.dump({
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "additionalContext": (
+                "⚠️ 检测到用 shell 重定向把中文写进文件（echo/cat/printf/heredoc > 文件）。"
+                "shell 在部分 locale 下会弄乱中文编码，是高频报错来源。"
+                "建议改用 Python 显式写：with open(path,'w',encoding='utf-8') as f: f.write(...)。"
+            ),
+        }
+    }, sys.stdout)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,13 @@
+{
+  "name": "youngfly93-bioinfo",
+  "owner": { "name": "youngfly93" },
+  "description": "生信交付/发表工作流 marketplace —— bio-* skill 家族 + 钩子 + house 样式 + 子代理。",
+  "plugins": [
+    {
+      "name": "bio-delivery",
+      "source": ".",
+      "description": "生信外包交付到发表的完整工作流（审计/报告/图表/打包 + 机械守护钩子）。",
+      "version": "0.1.0"
+    }
+  ]
+}

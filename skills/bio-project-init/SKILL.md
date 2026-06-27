@@ -27,7 +27,7 @@ description: >-
 确认后运行：
 
 ```bash
-bash <workspace>/yang_lab/harness_bio/harness/scaffold/scaffold.sh \
+bash /Volumes/KINGSTON/work/yang_lab/harness_bio/harness/scaffold/scaffold.sh \
   "<project_dir>" "<type>" "<species>" "<project_name>"
 ```
 
@@ -48,7 +48,7 @@ bash <workspace>/yang_lab/harness_bio/harness/scaffold/scaffold.sh \
    - 固定参数，如 DEG 阈值、分组定义、contrast。
    - QC 断言中的具体数值，如样本总数。
 3. 验证关键文件和目录都已创建。
-4. 如果 harness spec 存在，按 `<workspace>/yang_lab/harness_bio/harness/specs/plan_template.md` 做计划质量检查。
+4. 如果 harness spec 存在，按 `/Volumes/KINGSTON/work/yang_lab/harness_bio/harness/specs/plan_template.md` 做计划质量检查。
 
 ## 输出
 

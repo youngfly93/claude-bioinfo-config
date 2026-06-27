@@ -5,6 +5,17 @@
 > ⚠️ **不含任何凭证、会话记录、客户/患者数据**——只有“设计产物”（规则 / 技能 / 钩子 / 样式）。
 > 真实路径、用户名、服务器名、客户项目名已替换为 `~` / `<user>` / `<compute-server>` / `<project>` 等占位符。
 
+## 作为插件安装
+
+本库同时是一个 Claude Code **插件 + marketplace**（见 `.claude-plugin/`）：
+
+```bash
+/plugin marketplace add youngfly93/claude-bioinfo-config
+/plugin install bio-delivery@youngfly93-bioinfo
+```
+
+> ⚠️ **可移植性**：钩子用 `${CLAUDE_PLUGIN_ROOT}`，可移植；但 skill 内部脚本（docx_check / house 样式等）路径假设装在 `~/.claude`（已脱敏为 `~`）。跨机一键即用需把这些引用也改成 `${CLAUDE_PLUGIN_ROOT}`——当前版本最适合"装进自家 `~/.claude` 或作参考"。
+
 ## 背景
 
 一个生物信息工程师（癌症基因组 / 多组学 / 蛋白组 / 临床报告**外包交付**）的 Claude Code 工作环境。

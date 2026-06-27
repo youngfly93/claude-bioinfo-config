@@ -1,6 +1,6 @@
 {
   "meta": {
-    "handle": "@<user>",
+    "handle": "@yourhandle",
     "site": "yourlab.studio",
     "cjk_font": "PingFang SC"
   },
@@ -67,7 +67,7 @@
       "type": "closing",
       "title_en": "thank you",
       "title_zh": "谢谢",
-      "links": ["@<user>", "yourlab.studio"]
+      "links": ["@yourhandle", "yourlab.studio"]
     }
   ]
 }

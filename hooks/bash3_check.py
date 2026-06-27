@@ -50,11 +50,12 @@ def main():
 
     if found:
         features = ", ".join(found)
-        result = {
-            "decision": "warn",
-            "reason": f"⚠️ 检测到 bash 4+ 语法: {features}。macOS 默认 /bin/bash 是 3.2 版本，不支持这些特性。建议改用 zsh 或 /opt/homebrew/bin/bash。"
-        }
-        json.dump(result, sys.stdout)
+        json.dump({
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "additionalContext": f"⚠️ 检测到 bash 4+ 语法: {features}。macOS 默认 /bin/bash 是 3.2 版本，不支持这些特性。建议改用 zsh 或 /opt/homebrew/bin/bash。",
+            }
+        }, sys.stdout)
 
 if __name__ == "__main__":
     main()
