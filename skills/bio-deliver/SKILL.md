@@ -160,3 +160,16 @@ AI 痕迹处理后，再次检查 .docx 图片引用、XML 完整性、中文字
 ZIP路径: xxx
 ZIP大小: xx MB
 ```
+
+## 交付后：发表支持（可选 · 衔接 nature-* 链）
+
+客户拿到交付常要发论文——交付物里 `溯源表`/`report_claims.tsv`（可溯源数字）+ house 样式图 + `plan.md`（方法学）就是现成的论文素材。需要时按这条链走：
+
+| 步 | skill | 用交付物里的什么 |
+|---|---|---|
+| 起草 | `nature-writing` | report_claims 数字 + 图 → Methods/Results/Intro |
+| 补引用 | `nature-citation` | 给正文加严格 CNS 引用 |
+| 润色 | `nature-polishing` | 中文/初稿 → Nature 英文 |
+| 数据可用性 | `nature-data` | GEO/SRA 提交、Data Availability、FAIR |
+| 审稿轮 | `bio-audit-fix` + `nature-response` | 重分析 + 逐点回复 |
+| 汇报 | `nature-paper2ppt` / `bio-ppt` | 把分析讲清楚 |

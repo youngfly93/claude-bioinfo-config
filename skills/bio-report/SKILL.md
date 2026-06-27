@@ -6,7 +6,7 @@ description: >-
   生成后用 docx_check.py 验证 XML 完整性、图片引用、字体嵌入、markdown 残留与 AI 套话。
   触发条件：用户说"生成报告"、"出 Word 报告"、"bio-report"、"交付报告"、"写分析报告"、"生信报告"。
   完整交付、打包、发客户请优先使用 bio-deliver；本 skill 只负责报告生成/修订。
-  不适用于：交付打包成 ZIP（用 bio-deliver）、论文稿件写作（用 nature-writing/nature-polishing）、PPT（用 ppt）。
+  不适用于：交付打包成 ZIP（用 bio-deliver）、论文稿件写作（用 nature-writing/nature-polishing）、PPT（用 bio-ppt）。
 ---
 
 # 生信 Word 交付报告
@@ -14,12 +14,22 @@ description: >-
 配合 `document-skills:docx` 生成中文生信分析 Word 交付报告。
 
 > 完整交付场景优先用 `bio-deliver`。本 skill 是报告专项能力，可被 `bio-deliver` 编排，也可在只需要生成/修订 Word 报告时单独使用。
+>
+> **用 Opus 4.6 生成**：委派给 `bio-report-writer` 子代理——它的模型固定为 `claude-opus-4-6`，独立运行、不影响主会话模型；它按本 skill 的规则执行。
 
 ## 前置准备
 
 1. 读 `plan.md` 了解项目背景、分析内容和要求
 2. 扫描 `results/`、`figures/` 收集所有可用图表和结果
 3. 按 plan.md 的分析步骤确定报告章节结构
+
+## 数值溯源（写进报告的每个数都不能编）
+
+报告是客户第一眼看的东西，写错或编造一个数最贵（曾有结论写反、p 值 bug 进了 Word）。所以：
+
+- 报告里每个数值、统计量、p 值、样本数，**必须来自 `results/` 里的真实结果文件**——不从图里或记忆"读个大概"，不凑整。
+- 每个承重数值**登记到 `report_claims.tsv`**（报告位置 → 数值 → 来源文件:列）——这正是交付前 `bio-result-audit` 数字台账要逐条复算对账的清单。
+- 拿不准的数 → 标"待核"，**先别写上去**（守全局"数字不杜撰"）。
 
 ## 报告结构模板
 
@@ -84,4 +94,5 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/docx_check.py check <report.docx>
 ## 注意
 
 - 用 document-skills:docx 的能力生成 .docx
+- **写人话**：专业、自然的中文交付语气；别堆 AI 套话（"综上所述/值得注意的是/不难发现"），结论要具体、有数据支撑，不空泛。事后再用 `bio-ai-clean` 兜底扫一遍。
 - 报告生成后通常接 `bio-deliver` 打包交付

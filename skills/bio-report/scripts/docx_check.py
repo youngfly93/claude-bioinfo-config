@@ -63,7 +63,8 @@ def check(path):
                     res["fail"].append(f"XML 解析失败 {n}: {e}")
 
         # 2. 图片引用对账：word/media 实际图片 vs document.xml 引用数
-        media = [n for n in names if n.startswith("word/media/")]
+        # 排除目录条目（docx-js 会写显式的 "word/media/" 目录条目，python-docx 不会）
+        media = [n for n in names if n.startswith("word/media/") and not n.endswith("/")]
         doc_xml = zf.read("word/document.xml").decode("utf-8", "ignore") if "word/document.xml" in names else ""
         ref_ids = set(re.findall(r'r:embed="([^"]+)"', doc_xml))
         res["image"] = {"media_files": len(media), "doc_refs": len(ref_ids),

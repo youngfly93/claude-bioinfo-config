@@ -217,12 +217,17 @@ nature_hm_gp <- function(size = 6, face = "plain") {
 }
 
 # 顶部分组注释（house 风格）
+# 注意：annotation_legend_param 必须显式带 CJK 字体，否则注释图例的中文标签会变豆腐块
 nature_hm_anno <- function(..., col = NULL) {
   if (!requireNamespace("ComplexHeatmap", quietly = TRUE)) stop("nature_hm_anno 需要 ComplexHeatmap 包")
   ComplexHeatmap::HeatmapAnnotation(
     ...,
     col = col,
     annotation_name_gp = nature_hm_gp(6),
+    annotation_legend_param = list(
+      title_gp  = nature_hm_gp(6.2, "bold"),
+      labels_gp = nature_hm_gp(5.8)
+    ),
     simple_anno_size   = grid::unit(3, "mm")
   )
 }

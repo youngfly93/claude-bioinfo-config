@@ -1,0 +1,73 @@
+{
+  "meta": {
+    "handle": "@<user>",
+    "site": "yourlab.studio",
+    "cjk_font": "PingFang SC"
+  },
+  "slides": [
+    {
+      "type": "cover",
+      "title_en": "Single-Cell Atlas",
+      "title_zh": "单细胞图谱分析",
+      "subtitle": "一次从原始矩阵到生物学故事的旅程",
+      "author": "杨非 · 2026",
+      "serif": true
+    },
+    {
+      "type": "section",
+      "number": "01",
+      "title_en": "the question",
+      "title_zh": "我们在回答什么问题",
+      "dark": true
+    },
+    {
+      "type": "statement",
+      "text_zh": "肿瘤微环境里，哪些细胞群在免疫治疗后被重塑了？",
+      "text_en": "which cell populations are remodeled after therapy?",
+      "side_label": "01. question"
+    },
+    {
+      "type": "content",
+      "title_en": "WORKFLOW",
+      "title_zh": "分析流程",
+      "body": [
+        "get data  →  quality control  →  integration",
+        "→  clustering  →  annotation  →  story",
+        "每一步都可复现：固定随机种子、记录关键参数。"
+      ],
+      "side_label": "02. method"
+    },
+    {
+      "type": "two_column",
+      "title": "DATA SOURCES 数据来源",
+      "left": { "head": "自产数据 in-house", "items": ["10x Genomics", "Smart-seq2", "空间转录组"] },
+      "right": { "head": "公共数据 public", "items": ["GEO", "TCGA", "Human Cell Atlas"], "muted": true },
+      "side_label": "02. method"
+    },
+    {
+      "type": "list",
+      "title_en": "KEY FINDINGS",
+      "title_zh": "核心发现",
+      "numbered": true,
+      "items": [
+        "治疗后 CD8+ T 细胞耗竭程度显著降低（FDR < 0.05）",
+        "新发现一群 SPP1+ 巨噬细胞富集于无应答者",
+        "拟时序提示这群细胞向促血管表型分化"
+      ],
+      "side_label": "03. results"
+    },
+    {
+      "type": "statement",
+      "text_zh": "数据不是终点，故事才是。",
+      "text_en": "data is not the destination — the story is.",
+      "dark": true,
+      "side_label": "04. takeaway"
+    },
+    {
+      "type": "closing",
+      "title_en": "thank you",
+      "title_zh": "谢谢",
+      "links": ["@<user>", "yourlab.studio"]
+    }
+  ]
+}

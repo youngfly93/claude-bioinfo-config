@@ -27,3 +27,8 @@ __pycache__/
 *.pyc
 .Rhistory
 .RData
+
+# bio-ppt 字体二进制(体积大、对配置评估无用)
+skills/bio-ppt/assets/fonts/
+*.ttf
+*.otf

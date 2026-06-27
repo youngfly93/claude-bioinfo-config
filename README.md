@@ -23,14 +23,20 @@
 │  │   └─ cjk_shell_check.py    中文写文件 → 提醒用 Python
 │  └─ assets/figure-style/nature_theme.R   统一 house 样式（主题+热图+CJK安全）
 │
-└─ ② Skill 层  —— 触发才生效（bio-* 家族，11 个）
-   ├─ 开工      bio-project-init · bio-grill
+├─ ② agents/  —— 自定义子代理（独立模型 + 独立上下文）
+│   ├─ bio-result-auditor      只读审计代理
+│   └─ bio-report-writer  ⚡固定 Opus 4.6  出报告（主会话模型不受影响）
+│
+└─ ③ Skill 层  —— 触发才生效（bio-* 家族，12 个）
+   ├─ 开工      bio-project-init · bio-grill〔接文献检索〕
    ├─ 理解/调试 bio-zoom-out · bio-diagnose
    ├─ 审计/修复 bio-result-audit · bio-fig-review(⚙) · bio-audit-fix
    ├─ 报告      bio-report(⚙)
    ├─ 交付      bio-deliver(⚙ · 总入口)
-   └─ 其它      bio-ai-clean · bio-roundtable
-       ⚙ = 带确定性校验脚本（docx_check / fig_check / zip_pack / ai_trace_scan）
+   ├─ 汇报      bio-ppt(⚙)
+   └─ 其它      bio-ai-clean · bio-roundtable〔接文献检索〕
+       ⚙ = 确定性脚本（docx_check / fig_check / zip_pack / ai_trace_scan / build_deck）
+       ⚡ = 子代理钉死模型
 ```
 
 ## 目录说明
@@ -41,9 +47,9 @@
 | `settings.json` | 模型(opus[1m]) / 推理强度 / 启用插件 / PreToolUse 钩子 |
 | `hooks/` | 两个 Bash 预检钩子（bash3 语法 / 中文写文件） |
 | `assets/figure-style/nature_theme.R` | 统一绘图样式真源：ggplot 主题 + 语义配色 + ComplexHeatmap 热图 + CJK 安全字体自动解析 |
-| `skills/bio-*` | 11 个自定义 skill，串成 开工→出图→审计→报告→交付 流水线 |
+| `skills/bio-*` | 12 个自定义 skill，串成 开工→出图→审计→报告→交付 流水线；并接 nature-* 发表链 |
 | `commands/` | 自定义 slash 命令 |
-| `agents/` | 自定义子代理（bio-result-auditor） |
+| `agents/` | 自定义子代理：`bio-result-auditor`（只读审计）、`bio-report-writer`（出报告，固定 Opus 4.6） |
 | `statusline-command.sh` | 状态栏脚本（git 分支 + 配额进度条） |
 | `settings.local.json` | 权限白名单（Bash 命令 allow 规则） |
 | `my-skills/habit-analyzer/` | 自定义 skill（使用习惯分析） |
@@ -63,6 +69,8 @@
 - **CJK 安全**：报告渲染与绘图字体自动解析中文可用字体，避免丢字/方块。
 - **抗崩溃**：长审计/修复落盘 + 检查点，会话中断可续。
 - **风格统一**：所有图 `source` 同一份 house 样式，一个交付一套风格。
+- **按需绑模型**：报告生成委派给 `bio-report-writer` 子代理（frontmatter 钉死 Opus 4.6），主会话保持 Opus 4.8——per-subagent 模型独立。
+- **交付↔发表打通**：bio-*（交付）与 nature-*（发表）靠 `report_claims + house图 + plan.md` 衔接；bio-grill/roundtable 已接文献检索（nature-academic-search）。
 
 ## 想请你评估
 
