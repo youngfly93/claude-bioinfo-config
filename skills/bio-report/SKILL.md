@@ -1,0 +1,87 @@
+---
+name: bio-report
+description: >-
+  生成中文生信分析 Word 交付报告。配合 document-skills:docx，按 plan.md 组织章节，
+  嵌入 results/figures 图表，套用中文排版规范（宋体正文 / Times New Roman 数字 / 黑体标题），
+  生成后用 docx_check.py 验证 XML 完整性、图片引用、字体嵌入、markdown 残留与 AI 套话。
+  触发条件：用户说"生成报告"、"出 Word 报告"、"bio-report"、"交付报告"、"写分析报告"、"生信报告"。
+  完整交付、打包、发客户请优先使用 bio-deliver；本 skill 只负责报告生成/修订。
+  不适用于：交付打包成 ZIP（用 bio-deliver）、论文稿件写作（用 nature-writing/nature-polishing）、PPT（用 ppt）。
+---
+
+# 生信 Word 交付报告
+
+配合 `document-skills:docx` 生成中文生信分析 Word 交付报告。
+
+> 完整交付场景优先用 `bio-deliver`。本 skill 是报告专项能力，可被 `bio-deliver` 编排，也可在只需要生成/修订 Word 报告时单独使用。
+
+## 前置准备
+
+1. 读 `plan.md` 了解项目背景、分析内容和要求
+2. 扫描 `results/`、`figures/` 收集所有可用图表和结果
+3. 按 plan.md 的分析步骤确定报告章节结构
+
+## 报告结构模板
+
+```
+1. 项目概述（研究背景 / 分析目标 / 数据概况）
+2. 分析方法（数据质控 / 分析流程 / 软件与参数）
+3. 分析结果（按 plan.md 的每个分析步骤，每步配对应图表）
+4. 结论与讨论
+附录（A. 软件版本  B. 参数配置）
+```
+
+## 格式要求
+
+- **中文正文**：宋体（SimSun），小四（12pt）
+- **英文/数字**：Times New Roman，12pt
+- **标题**：黑体（SimHei）— 一级三号(16pt)加粗 / 二级四号(14pt)加粗 / 三级小四(12pt)加粗
+- **行距**：1.5 倍
+- **页边距**：上下 2.54cm，左右 3.18cm
+
+## CJK 安全渲染（防字体丢失 / 表格重叠）
+
+报告最常翻车的是渲染：客户端缺字体、PDF 转换丢中文、表格文字重叠。固定走下面的安全路径，别临场发挥。
+
+### Word(.docx)
+
+- 字体按上方规范设定，并**嵌入字体**（embedTrueTypeFonts），客户没装宋体/黑体时也不被替换。
+- 三线表显式设定列宽，避免内容溢出页面。
+
+### PDF（Word→PDF、一页纸说明、`00_交付说明` 等）
+
+- **中文字体一律用 Noto Sans CJK / 思源黑体宋体，严禁 Helvetica 或默认 Latin 字体**——这是 CJK 丢字、变方块的头号原因。
+- **用 Python 渲染脚本生成，不用 shell heredoc/echo**（中文经 shell 易乱码，是高频报错源）。
+- 表格设固定/自适应列宽 + 自动换行，渲染后确认无文字重叠、无溢出。
+- **打包前先出一张预览（首页或关键页）给用户确认，再定稿**，别盲打包。
+
+## 图表嵌入规则
+
+1. 嵌入前验证图片路径存在（`ls -la "$img_path"`）
+2. PDF 转图的 `_page1`/`_page2` 变体优先用 `_page1`
+3. 标题格式：`图 X. 描述` / `表 X. 描述`，居中显示
+4. 支持 .png/.jpg/.tiff
+5. 表格用三线表风格；图表编号连续，与正文引用一致
+
+## 生成后验证
+
+用确定性脚本校验，不靠肉眼或裸正则（脚本扫**可见文字**而非裸 XML，避免误报）：
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/docx_check.py check <report.docx>
+# 若无 ${CLAUDE_SKILL_DIR}：~/.claude/skills/bio-report/scripts/docx_check.py
+# 检查 XML 完整性 / 图片引用对账 / 字体嵌入 / Markdown 残留
+# 退出码 0=通过，1=有 WARN/FAIL
+```
+
+脚本报告的问题逐项处理：
+
+- **Markdown 残留**：人工确认后清除（脚本只标不删）。
+- **图片不一致**：核对断链或未被引用的图片。
+- **字体未嵌入**：重新生成时开启字体嵌入。
+- **AI 套话**：用 `bio-ai-clean` 扫描（关键词真源 `~/.claude/skills/bio-deliver/scripts/ai_trace_scan.py`）。
+
+## 注意
+
+- 用 document-skills:docx 的能力生成 .docx
+- 报告生成后通常接 `bio-deliver` 打包交付

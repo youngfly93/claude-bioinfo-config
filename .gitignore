@@ -1,0 +1,29 @@
+# ===== 永不提交：凭证 / 运行时数据 / 会话记录 =====
+.credentials.json
+*credential*
+*secret*
+*token*
+*.key
+*.pem
+history.jsonl
+projects/
+sessions/
+tasks/
+teams/
+file-history/
+shell-snapshots/
+paste-cache/
+usage-data/
+telemetry/
+stats-cache.json
+settings.local.json
+*.log
+
+# ===== 系统/临时 =====
+.DS_Store
+._*
+__MACOSX/
+__pycache__/
+*.pyc
+.Rhistory
+.RData
