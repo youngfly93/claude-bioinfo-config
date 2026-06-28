@@ -60,6 +60,17 @@
           }
         ]
       }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/precompact_handoff.py",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
