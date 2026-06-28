@@ -117,11 +117,20 @@ def scan_text_content(filepath: str) -> list:
     return issues
 
 
+# harness/审计 QA 元数据：含 harness 安装路径(.claude)、是内部证明不是客户内容 → 不扫/不清/不打包
+HARNESS_INTERNAL = {"proof.json", "goal_proof.md"}
+SKIP_DIRS = {".bio_harness", "audit"}  # 内部 QA 目录整体跳过(从不发客户)
+
+
 def scan_directory(directory: str) -> list:
     """扫描目录，返回所有 AI 痕迹。"""
     all_issues = []
     for root, _, files in os.walk(directory):
+        if any(d in root.split(os.sep) for d in SKIP_DIRS):
+            continue
         for f in files:
+            if f in HARNESS_INTERNAL:
+                continue
             full = os.path.join(root, f)
             ext = os.path.splitext(f)[1].lower()
             if ext in OFFICE_EXTS:
@@ -178,7 +187,11 @@ def clean_directory(directory: str) -> list:
     SOFT 痕迹与 Office 正文不在此自动清除，需人工复核（见 scan 输出 action=review）。"""
     cleaned = []
     for root, _, files in os.walk(directory):
+        if any(d in root.split(os.sep) for d in SKIP_DIRS):
+            continue
         for f in files:
+            if f in HARNESS_INTERNAL:
+                continue
             full = os.path.join(root, f)
             ext = os.path.splitext(f)[1].lower()
             n = 0

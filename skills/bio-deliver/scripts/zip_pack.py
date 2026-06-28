@@ -7,7 +7,8 @@ import sys
 import datetime
 import hashlib
 
-EXCLUDE = {'.DS_Store', '__MACOSX', '.git', '.Rhistory', '.RData', 'Thumbs.db'}
+EXCLUDE = {'.DS_Store', '__MACOSX', '.git', '.Rhistory', '.RData', 'Thumbs.db',
+           '.bio_harness', 'proof.json', 'goal_proof.md'}  # 末三项=harness QA 内部产物,绝不发客户
 
 def should_exclude(path: str) -> bool:
     parts = path.split(os.sep)

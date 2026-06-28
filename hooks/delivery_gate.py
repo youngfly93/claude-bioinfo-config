@@ -55,6 +55,12 @@ def main() -> int:
         print(f"bio-delivery-gate: proof status is {status}; not ready for final sending.", file=sys.stderr)
         return 2 if strict else 0
 
+    # 不只信 status：核对每条命令的退出码，挡住"手动 finalize PASS 但某步其实 exit≠0"
+    failed = [str(c.get("name")) for c in (proof.get("commands") or []) if c.get("exit_code") not in (0, None)]
+    if failed:
+        print(f"bio-delivery-gate: proof 记录有命令未通过(exit≠0): {', '.join(failed)}；修复后重跑再发。", file=sys.stderr)
+        return 2 if strict else 0
+
     bad = []
     for issue in proof.get("open_warnings", []) or []:
         text = str(issue)
