@@ -24,6 +24,13 @@ def _is_biao(name):
 
 
 def run(root):
+    # 若 delivery/ 下只有一个子夹(项目交付夹)、无散文件,下钻进它(对齐 zip_pack 单一根逻辑)
+    top = [e for e in os.listdir(root) if not e.startswith(".") and e not in EXCLUDE]
+    tsd = [e for e in top if os.path.isdir(os.path.join(root, e))]
+    tlf = [e for e in top if os.path.isfile(os.path.join(root, e))]
+    if len(tsd) == 1 and not tlf:
+        root = os.path.join(root, tsd[0])
+
     F = []
     def add(sev, code, msg, where=""):
         F.append({"severity": sev, "code": code, "message": msg, "path": where or os.path.basename(root)})
