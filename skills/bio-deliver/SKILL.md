@@ -62,6 +62,7 @@ python3 ${SKILL_DIR}/scripts/ai_trace_scan.py clean <directory>
 - 步骤 1 有 P0/P1 问题 → 中止打包，建议先执行审计修复流程
 - ZIP 打包和 AI 扫描必须调用上方 Tool Facet 脚本，不可内联重写
 - 排除文件：.DS_Store, __MACOSX, .git, .Rhistory, .RData, Thumbs.db
+- **过程记录不进交付包**：`HANDOFF.md`、`DOCS_INDEX.md`、`execution_log.md`、`fix_log.md`、`audit/`、`.work/`、`_archive/`、各类 `*_v*` / `*_final` / 草稿 md——这些是内部记录，客户包只放正式报告/图/表/脚本/溯源表。源目录散落多版本 md 太多 → 先用 `bio-docs-tidy` 收口再打包。
 - 必须有 plan.md 才能启动（无则停止，提醒先建立）
 - ZIP 文件名格式：`项目名_交付_YYYYMMDD.zip`
 - **版本纪律（防泛滥 + 防改错目录）**：只在一个正本目录构建交付物；出新版时把旧版归档到 `_archive/`，并用 `delivery_latest` 软链指向当前正本；绝不在 `.tmp*`、`xxx 2`/`xxx 3`、副本目录里改。每次只操作正本。
