@@ -17,7 +17,10 @@ usage-data/
 telemetry/
 stats-cache.json
 settings.local.json
+.bio_harness/
 *.log
+# 本地工作态状态快照（含真实路径；precompact 钩子从本地读，不入公开仓库）
+HANDOFF.md
 
 # ===== 系统/临时 =====
 .DS_Store
