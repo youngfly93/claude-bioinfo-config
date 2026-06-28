@@ -40,6 +40,7 @@ pick_color() {
 
 RESET='\033[0m'
 
+ctx_pct=$(echo "$input" | jq -r '.context_window.used_percentage // empty' 2>/dev/null)
 five_pct=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty' 2>/dev/null)
 week_pct=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty' 2>/dev/null)
 
@@ -48,6 +49,15 @@ parts=""
 # 先拼接 git 分支
 if [ -n "$git_branch" ]; then
   parts="$(printf '\033[36m')${git_branch}$(printf '\033[0m')"
+fi
+
+# context 用量 —— "质量要降"红绿灯（绿<70% / 黄70-90% / 红>90%）
+if [ -n "$ctx_pct" ]; then
+  bar=$(make_bar "$ctx_pct")
+  val=$(printf "%.0f" "$ctx_pct")
+  color=$(pick_color "$ctx_pct")
+  [ -n "$parts" ] && parts="${parts} "
+  parts="${parts}$(printf "${color}ctx:[${bar}]${val}%%${RESET}")"
 fi
 
 if [ -n "$five_pct" ]; then
