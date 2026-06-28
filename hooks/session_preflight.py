@@ -35,7 +35,7 @@ def main():
 
     # clear/compact 是同一会话内重置上下文：环境没变，跳过(慢的)R 复检，只留交接棒提示
     light = source in ("clear", "compact")
-    home = os.path.expanduser("~")
+    base = os.environ.get("CLAUDE_PLUGIN_ROOT") or os.path.join(os.path.expanduser("~"), ".claude")  # 插件装别处也能找到
     parts = []
 
     # 1. 二进制
@@ -44,9 +44,9 @@ def main():
 
     # 2. 关键文件
     files = {
-        "house样式": f"{home}/.claude/assets/figure-style/nature_theme.R",
-        "docx_check": f"{home}/.claude/skills/bio-report/scripts/docx_check.py",
-        "fig_check": f"{home}/.claude/skills/bio-fig-review/scripts/fig_check.py",
+        "house样式": f"{base}/assets/figure-style/nature_theme.R",
+        "docx_check": f"{base}/skills/bio-report/scripts/docx_check.py",
+        "fig_check": f"{base}/skills/bio-fig-review/scripts/fig_check.py",
     }
     for name, p in files.items():
         parts.append(f"{name}{'✓' if os.path.exists(p) else '✗缺'}")

@@ -73,7 +73,7 @@ description: >-
 4. 支持 .png/.jpg/.tiff
 5. 表格用三线表风格；图表编号连续，与正文引用一致
 6. 若报告需**新生成或重画**任何图（汇总图、占位补图等），脚本顶部统一
-   `source("~/.claude/assets/figure-style/nature_theme.R")`，优先用 `nature_*` 模块
+   `source(file.path(Sys.getenv("CLAUDE_PLUGIN_ROOT", "~/.claude"), "assets/figure-style/nature_theme.R"))`，优先用 `nature_*` 模块
    （volcano/km/enrich_dot/pca/box_sig/forest/oncoprint/heatmap）+ `save_nature()` 导出——
    和交付其余图一套风格、CJK 安全；不用 Python 画图。
 
@@ -93,7 +93,7 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/docx_check.py check <report.docx>
 - **Markdown 残留**：人工确认后清除（脚本只标不删）。
 - **图片不一致**：核对断链或未被引用的图片。
 - **字体未嵌入**：重新生成时开启字体嵌入。
-- **AI 套话**：用 `bio-ai-clean` 扫描（关键词真源 `~/.claude/skills/bio-deliver/scripts/ai_trace_scan.py`）。
+- **AI 套话**：用 `bio-ai-clean` 扫描（关键词真源 `${CLAUDE_PLUGIN_ROOT:-$HOME/.claude}/skills/bio-deliver/scripts/ai_trace_scan.py`）。
 
 ## 注意
 

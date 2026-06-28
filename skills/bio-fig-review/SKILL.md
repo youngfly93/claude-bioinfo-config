@@ -89,5 +89,5 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/fig_check.py check <figures目录或单图> 
 - 先报告，不擅自覆盖原图。
 - 不用“好看/不好看”替代具体证据。
 - 若用户要求修图/重画，统一用 `nature-figure` 的 **R 后端**（ggplot2 / ComplexHeatmap），并在脚本顶部
-  `source("~/.claude/assets/figure-style/nature_theme.R")`、优先调 `nature_*` 模块 + `save_nature()` 导出，
+  `source(file.path(Sys.getenv("CLAUDE_PLUGIN_ROOT", "~/.claude"), "assets/figure-style/nature_theme.R"))`、优先调 `nature_*` 模块 + `save_nature()` 导出，
   保证全交付一套风格、CJK 安全；优先改生成脚本而不是手工处理输出图；不用 Python 画图。

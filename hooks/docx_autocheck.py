@@ -10,7 +10,8 @@ import time
 import glob
 import subprocess
 
-CHECK = os.path.expanduser("~/.claude/skills/bio-report/scripts/docx_check.py")
+_BASE = os.environ.get("CLAUDE_PLUGIN_ROOT") or os.path.expanduser("~/.claude")  # 插件装别处也能找到
+CHECK = os.path.join(_BASE, "skills/bio-report/scripts/docx_check.py")
 # 只查这些浅层位置（报告通常落这儿），避免递归扫整个工作树
 PATTERNS = ["*.docx", "reports/*.docx", "报告/*.docx", "01_*/*.docx",
             "delivery*/*.docx", "delivery*/*/*.docx", "*/reports/*.docx"]

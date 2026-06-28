@@ -3,6 +3,7 @@
 
 Default mode is advisory to avoid blocking ordinary sessions. It becomes strict if:
 - BIO_DELIVERY_GATE_STRICT=1, or
+- .bio_clinical_mode exists in the project root (临床/敏感项目硬卡), or
 - .bio_delivery_gate exists in the project root, or
 - delivery/.ready_to_send exists.
 """
@@ -37,7 +38,11 @@ def main() -> int:
     if not delivery.exists():
         return 0
 
-    strict = os.environ.get("BIO_DELIVERY_GATE_STRICT") == "1" or (root / ".bio_delivery_gate").exists() or (delivery / ".ready_to_send").exists()
+    # 临床/敏感项目：项目根放 .bio_clinical_mode 即强制 strict（交付门变硬卡）
+    strict = (os.environ.get("BIO_DELIVERY_GATE_STRICT") == "1"
+              or (root / ".bio_delivery_gate").exists()
+              or (root / ".bio_clinical_mode").exists()
+              or (delivery / ".ready_to_send").exists())
     proof_path = delivery / "proof.json"
     if not proof_path.exists():
         msg = "bio-delivery-gate: delivery/ exists but delivery/proof.json is missing. Run bio-goal or harness/delivery/proof.py before sending."
