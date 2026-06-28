@@ -20,6 +20,41 @@
 - 不新增 `bin/bio-harness` 之类统一 CLI，除非用户明确要求；现阶段直接调用 `harness/` 里的脚本。
 - 不为 Warp、Codex、Claude 分别维护一套规则。所有环境都必须落到同一套 harness 命令、`audit.json` 和 `proof.json`。
 
+## 多 agent 环境隔离
+
+Claude Code 与 Codex 可以在同一项目中分析、审核和验收，但运行态必须隔离：
+
+- 仓库只存配置源码、harness、skills、hooks、tests；不存任何 agent 运行态。
+- Claude 运行态留在 `~/.claude/`，Codex 运行态留在 `~/.codex/`；除非用户明确要求安装/同步配置，不要从本仓库写回这些目录。
+- 不读取或复制两边的 `history.jsonl`、`sessions/`、`file-history/`、`paste-cache/`、`shell-snapshots/`、SQLite 日志、credentials/auth 文件。
+- 项目级可共享证据只放在项目根：`audit/`、`delivery/proof.json`、`delivery/goal_proof.md`、`report_claims.tsv`、`numeric_reference.tsv`、`.bio_harness/logs/`。
+- 审核和验收只比较这些共享证据与源数据/脚本，不用某个 agent 的聊天记录或缓存作为事实来源。
+- 如果两边结论冲突，以 harness 退出码、`audit.json`、`proof.json`、源表复算结果为准。
+
+### 写入隔离与审核独立（防并发污染）
+
+同一项目、同一时刻，按以下分工，避免两个 agent 互相踩写、或污染审计独立性：
+
+- **单一 writer**：同一项目根下任一时刻只允许一个 agent 写入（跑分析、改 `results/`/`scripts/`/`reports/`/`delivery/`、跑 `package`/`collect`/`proof finalize`/`gate`）。开写前先取 `.bio_harness/.lock`（见下）；取不到就等待或转为只读审核，不要并发写同一棵树。
+- **审核/验收方默认只读**：做 review/审核/验收的 agent 对交付物**只读**，只允许写 `audit/`（`audit.json` 等审计发现）或独立的 review 输出；**发现问题只标记、不顺手修**交付物——修复交回写入方，保持审计独立。
+- **验收审冻结快照**：验收必须针对**已提交的快照**，不审正在变化的工作树。开审前 `git status` 确认无未提交改动，并核对 `delivery/proof.json` 的 `git_commit`、`plan_sha256` 等于当前 checkout 的 commit 与 `plan.md`；不一致就拒绝验收，要求写入方先提交冻结。
+
+### `.bio_harness/.lock` 写锁约定（轻量、咨询式）
+
+- 位置：项目根 `.bio_harness/.lock`，属运行态，**不入库**、不当共享证据。
+- 内容：持锁 agent 名、pid、主机、ISO 时间戳；陈旧阈值默认 30 分钟（`BIO_LOCK_TTL` 秒可调）。
+- 用 `harness/lib/agent_lock.sh` 取/查/放：
+
+```bash
+HARNESS_ROOT="$(sh harness/lib/resolve_harness.sh . 2>/dev/null || true)"
+sh "$HARNESS_ROOT/lib/agent_lock.sh" acquire claude .   # 写前取锁，被占用则非零退出
+sh "$HARNESS_ROOT/lib/agent_lock.sh" status .
+sh "$HARNESS_ROOT/lib/agent_lock.sh" release claude .   # 写完释放（长写入应周期性重新 acquire 刷新）
+```
+
+- 咨询式：当前靠各 agent 自觉先 `acquire`；陈旧锁可 `acquire --force` 打破并记录。
+- **把锁检查接进 `proof.py` / `gate` 使之强制，是后续项**——本次只立约定 + 提供工具，不改 proof/gate。
+
 ## 完成判定
 
 不要主观判断“交付完成”。完成只能由以下证据判定：

@@ -25,3 +25,10 @@
 - 一事一文件、**原地改**：要更新就改那个现成文件，别新建 `_v2 / _final / 副本 / (2)` 另一份；版本变更交给 git，不靠文件名堆。
 - 新建任何记录/说明 md 前，**先查有没有该更新的现成文件**（plan / HANDOFF / 执行日志 / 审计记录等）。
 - 过程记录与正本分开：过程/草稿集中放、可随时丢；只认少数真源文件，必要时用一份索引标明哪几个是权威。
+
+## 多 agent 环境隔离（Claude Code / Codex）
+- 本仓库只存配置源码、harness、skills、hooks、tests；不要把 `~/.claude` 或 `~/.codex` 的运行态缓存、历史、sessions、SQLite 日志、credentials/auth 文件纳入仓库。
+- Claude Code 和 Codex 可以共同审核同一项目，但共享事实只认项目根下的 `audit/`、`delivery/proof.json`、`delivery/goal_proof.md`、`report_claims.tsv`、`numeric_reference.tsv`、`.bio_harness/logs/` 以及源数据/脚本。
+- 验收时不用任一 agent 的聊天记录、缓存或主观总结作证据；若两边结论冲突，以 harness 退出码、`audit.json`、`proof.json` 和源表复算结果为准。
+- 除非用户明确要求安装/同步配置，不从本仓库写回 `~/.claude/` 或 `~/.codex/`。
+- **防并发写入污染**：同一项目同一时刻只允许一个 writer；审核/验收 agent 对交付物只读、只写 `audit/`、发现问题只标记不顺手改；验收只审 committed 冻结快照（核对 `proof.json` 的 `git_commit`/`plan_sha256` == 当前 checkout）。写前取项目根 `.bio_harness/.lock`（工具 `harness/lib/agent_lock.sh`，咨询式）。操作细节见 `AGENTS.md` 的「写入隔离与审核独立」。
