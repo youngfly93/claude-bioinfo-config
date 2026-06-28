@@ -15,17 +15,29 @@ def should_exclude(path: str) -> bool:
     return any(p in EXCLUDE for p in parts)
 
 def pack(delivery_dir: str, project_name: str = "项目") -> str:
-    """打包 delivery/ 为 Windows 兼容 ZIP，返回 ZIP 路径。"""
+    """打包为 Windows 兼容 ZIP；解压即得**单一干净根目录**（项目名_交付_DATE/，不带 delivery 外壳）。"""
+    delivery_dir = os.path.abspath(delivery_dir)
     date_str = datetime.datetime.now().strftime("%Y%m%d")
     zip_name = f"{project_name}_交付_{date_str}.zip"
     zip_path = os.path.join(os.path.dirname(delivery_dir), zip_name)
 
+    # 单一干净根目录：delivery 内只有一个子目录(现成的项目交付夹)→ 用它当根；
+    # 否则把 delivery 里的内容收进一个 {项目名_交付_DATE}/ 根，避免客户解压出 "delivery/" 通用壳或散文件。
+    entries = [e for e in os.listdir(delivery_dir)
+               if e not in EXCLUDE and not e.startswith('.')]
+    subdirs = [e for e in entries if os.path.isdir(os.path.join(delivery_dir, e))]
+    loose = [e for e in entries if os.path.isfile(os.path.join(delivery_dir, e))]
+    if len(subdirs) == 1 and not loose:
+        src, root_name = os.path.join(delivery_dir, subdirs[0]), subdirs[0]
+    else:
+        src, root_name = delivery_dir, zip_name[:-4]  # 合成根 = 项目名_交付_DATE
+
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED, allowZip64=True) as zf:
-        for root, dirs, files in os.walk(delivery_dir):
+        for root, dirs, files in os.walk(src):
             dirs[:] = [d for d in dirs if d not in EXCLUDE]
             for f in files:
                 full = os.path.join(root, f)
-                arcname = os.path.relpath(full, os.path.dirname(delivery_dir))
+                arcname = os.path.join(root_name, os.path.relpath(full, src))
                 if not should_exclude(arcname):
                     zf.write(full, arcname)
 

@@ -125,9 +125,13 @@ python3 ${SKILL_DIR}/scripts/ai_trace_scan.py clean <directory>
 
 **Step 3 — 收集交付物并组织标准结构**
 按 plan.md 确定文件，复制到 `delivery/项目名_交付_YYYYMMDD/`，严格按上方「交付目录标准结构（主题优先）」组织：报告进 `01_分析报告/`；每个分析主题建 `NN_主题/`，图、表分别放入其 `图/`、`表/`；脚本进 `NN_分析代码/`。不复制中间文件（.RData, .rds）和原始数据（fastq, bam）。同时生成三份导航/溯源产物：
-- `00_交付说明`：目录导航 + 分析概览 + 怎么读这个包 + 联系方式；
+- `00_交付说明`：分析概览 + 联系方式（人写，背景/口径）；
+- `00_目录导航.md`：用 `${CLAUDE_PLUGIN_ROOT:-$HOME/.claude}/harness/delivery/make_index.py delivery/项目名_交付_YYYYMMDD 项目名` **自动生成**——「想看什么→打开哪里」定位表 + 目录树 + 各主题文件数，让客户一眼找到自己要的内容（与实际文件一致、永不过时）；
 - `NN_溯源表.xlsx`：承重结果/图逐条，列含 结果/图路径、所属主题、源数据(文件:列)、生成脚本、关键参数/阈值；
 - `NN_分析代码/README_脚本说明.md`：逐脚本写明 输入 → 处理 → 输出到哪个主题。
+
+**Step 3.5 — 去冗余（客户包要「无冗余、好找」）**
+打包前跑 `${CLAUDE_PLUGIN_ROOT:-$HOME/.claude}/harness/delivery/dedup_check.py delivery/`：**P2（多版本 `_v2`/`_final`/副本/草稿残留）必须清零**，P3（内容完全相同的重复文件）复核。客户包里同一交付物只出现一次、命名清楚。
 
 **Step 4 — AI 痕迹 + 隐私扫描**
 - AI 痕迹：调用 `ai_trace_scan.py delivery/`。发现 → 修复 → 重扫确认。
