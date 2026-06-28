@@ -129,8 +129,9 @@ python3 ${SKILL_DIR}/scripts/ai_trace_scan.py clean <directory>
 - `NN_溯源表.xlsx`：承重结果/图逐条，列含 结果/图路径、所属主题、源数据(文件:列)、生成脚本、关键参数/阈值；
 - `NN_分析代码/README_脚本说明.md`：逐脚本写明 输入 → 处理 → 输出到哪个主题。
 
-**Step 4 — AI 痕迹扫描**
-调用 `ai_trace_scan.py delivery/`。发现 → 修复 → 重扫确认。
+**Step 4 — AI 痕迹 + 隐私扫描**
+- AI 痕迹：调用 `ai_trace_scan.py delivery/`。发现 → 修复 → 重扫确认。
+- **隐私红线**：调用 `${CLAUDE_PLUGIN_ROOT:-$HOME/.claude}/harness/delivery/privacy_scan.py delivery/`——扫本机路径(`/Users/`、`/home/`)、内网 IP、邮箱等客户/患者数据泄漏。**P0(路径/IP)必须清零**才放行；临床项目(`.bio_clinical_mode`)硬卡。
 
 **Step 5 — Word 文档验证**
 AI 痕迹处理后，再次检查 .docx 图片引用、XML 完整性、中文字体。

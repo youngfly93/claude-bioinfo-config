@@ -1,0 +1,4 @@
+{
+  "_comment": "本机提速可选：复制为 settings.local.json（Claude Code 会覆盖 settings.json，且 .local 通常 gitignore）。公开默认 settings.json 里 skipDangerousModePermissionPrompt=false（安全）；个人高频本机想免确认再开 true。外包/客户/患者数据项目建议保持 false，并在项目根放 .bio_clinical_mode 让交付门强制 strict。",
+  "skipDangerousModePermissionPrompt": true
+}

@@ -24,21 +24,18 @@ description: >-
 
 ## 生成脚手架
 
-确认后运行：
+确认后**自包含生成**（用 Write/`mkdir -p` 直接建，不依赖任何外部脚本或机器特定路径）：
 
-```bash
-bash /Volumes/KINGSTON/work/yang_lab/harness_bio/harness/scaffold/scaffold.sh \
-  "<project_dir>" "<type>" "<species>" "<project_name>"
-```
-
-脚本应生成：
-
-- `plan.md`：预填充分析计划，含 QC 断言和 `?` 占位符。
+- `plan.md`：预填充分析计划，含 QC 断言和 `?` 占位符（背景/数据/设计/阈值/contrast/QC 数值留 `?`）。
 - `CLAUDE.md`：项目 agent 行为配置。
-- `execution_log.md`：执行/审计日志模板。
-- `numeric_reference.tsv`：源数据标准数值表头。
-- `report_claims.tsv`：报告数值声明表头。
-- `results/`、`figures/`、`scripts/`、`reports/`、`delivery/`。
+- `execution_log.md`：执行/审计流水账模板（append-only）。
+- `HANDOFF.md`：当前状态快照空模板（见 `bio-handoff`，与流水账分工不混）。
+- `numeric_reference.tsv` / `report_claims.tsv`：表头 `key\tvalue\tsource_file\tsource_column`（report_claims 用 `claim_id\tclaim\tvalue\tsource_file\tsource_column\tstatus`）。
+- `reference.lock`：`organism / genome_build / annotation / created_at`（版本锁；先留 `?` 待确认）。
+- 目录：`results/`、`figures/`、`scripts/`、`reports/`、`delivery/`、`.work/`（过程草稿，可丢）。
+- `DOCS_INDEX.md`：真源清单（列出上面哪几个是权威文档）。
+
+> 中文内容一律用 Write 工具写（别用 shell heredoc/echo，防 CJK 乱码）。
 
 ## 初始化后检查
 
@@ -48,7 +45,8 @@ bash /Volumes/KINGSTON/work/yang_lab/harness_bio/harness/scaffold/scaffold.sh \
    - 固定参数，如 DEG 阈值、分组定义、contrast。
    - QC 断言中的具体数值，如样本总数。
 3. 验证关键文件和目录都已创建。
-4. 如果 harness spec 存在，按 `/Volumes/KINGSTON/work/yang_lab/harness_bio/harness/specs/plan_template.md` 做计划质量检查。
+4. 跑一遍 harness 预检确认脚手架合规（缺项会以 P2/P3 提示，可选规格缺=P3 不阻断）：
+   `bash "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude}/harness/specs/preflight_check.sh" .`
 
 ## 输出
 

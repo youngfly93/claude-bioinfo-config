@@ -153,7 +153,7 @@ def cmd_artifact(root: Path, paths: list[str]) -> int:
     return 0
 
 
-REQUIRED_COMMANDS = ["preflight", "validate_strict", "audit", "ai_scan", "package"]
+REQUIRED_COMMANDS = ["preflight", "validate_strict", "audit", "ai_scan", "privacy_scan", "package"]
 
 
 def _pass_blockers(root: Path, proof: dict) -> list[str]:

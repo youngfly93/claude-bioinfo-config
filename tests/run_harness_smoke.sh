@@ -13,6 +13,7 @@ python3 "$H/delivery/proof.py" run --name preflight . -- bash "$H/specs/prefligh
 python3 "$H/delivery/proof.py" run --name validate_strict . -- bash "$H/quality/validate.sh" --strict .
 python3 "$H/delivery/proof.py" run --name audit . -- bash "$H/quality/run_audit.sh" .
 python3 "$H/delivery/proof.py" run --name ai_scan . -- bash "$H/delivery/ai_scan.sh" .
+python3 "$H/delivery/proof.py" run --name privacy_scan . -- python3 "$H/delivery/privacy_scan.py" "$TMP/delivery"
 python3 "$H/delivery/proof.py" run --name package . -- bash "$H/delivery/package.sh" pack "$TMP/delivery" minimal_project
 python3 "$H/delivery/proof.py" collect .
 python3 "$H/delivery/proof.py" finalize . --status PASS

@@ -18,6 +18,7 @@ cat <<EOF
    $P run --name validate_strict "$PROJECT_DIR" -- bash "$HARNESS_ROOT/quality/validate.sh" --strict "$PROJECT_DIR"
    $P run --name audit "$PROJECT_DIR" -- bash "$HARNESS_ROOT/quality/run_audit.sh" "$PROJECT_DIR"
    $P run --name ai_scan "$PROJECT_DIR" -- bash "$HARNESS_ROOT/delivery/ai_scan.sh" "$PROJECT_DIR"
+   $P run --name privacy_scan "$PROJECT_DIR" -- python3 "$HARNESS_ROOT/delivery/privacy_scan.py" "$PROJECT_DIR/delivery"
    $P run --name package "$PROJECT_DIR" -- bash "$HARNESS_ROOT/delivery/package.sh" pack "$PROJECT_DIR/delivery" "$PROJECT_NAME"
    $P collect "$PROJECT_DIR"
 
