@@ -24,14 +24,17 @@ def _find_handoff(start):
 
 
 def main():
-    cwd = "."
+    cwd, source = ".", ""
     try:
         data = json.load(sys.stdin)
         if isinstance(data, dict):
             cwd = data.get("cwd") or "."
+            source = data.get("source") or ""
     except Exception:
         pass
 
+    # clear/compact 是同一会话内重置上下文：环境没变，跳过(慢的)R 复检，只留交接棒提示
+    light = source in ("clear", "compact")
     home = os.path.expanduser("~")
     parts = []
 
@@ -49,8 +52,8 @@ def main():
         parts.append(f"{name}{'✓' if os.path.exists(p) else '✗缺'}")
 
     # 3. R 包 + CJK 字体（单次 Rscript，带超时；慢就跳过）
-    r_status = "未检"
-    if shutil.which("Rscript"):
+    r_status = "同会话跳过" if light else "未检"
+    if not light and shutil.which("Rscript"):
         try:
             r = subprocess.run(
                 ["Rscript", "-e",
