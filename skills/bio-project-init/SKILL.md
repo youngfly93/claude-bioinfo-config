@@ -71,6 +71,7 @@ bash /Volumes/KINGSTON/work/yang_lab/harness_bio/harness/scaffold/scaffold.sh \
 
 - **绘图统一 house 样式**：所有绘图脚本顶部 `source("~/.claude/assets/figure-style/nature_theme.R")`，用 `theme_nature` / `save_nature` / `nature_heatmap` 出图——全项目一套风格、CJK 安全。出图走 `nature-figure` 的 R 后端。
 - **数值溯源接数字台账**：`numeric_reference.tsv`（源数据真值）和 `report_claims.tsv`（报告里的数值声明）正是交付前 `bio-result-audit` 数字台账要逐条对账的两张表——边分析边填、承重数字都登记，审计时一对就清。
+- **交接续接接 bio-handoff**：项目根放一份空 `HANDOFF.md`（当前状态快照），与 `execution_log.md`（流水账）分工不混——阶段交界 / 清理上下文前用 `bio-handoff` 更新它，接手或审批时按它再入水，防 `/clear`、`/compact` 后断层、口径不一。
 
 ## 纪律
 

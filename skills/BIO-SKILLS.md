@@ -3,7 +3,7 @@
 生信分析全流程的 skill 体系（Claude + Codex 双引擎，`~/.claude/skills/` + `~/.codex/skills/` 软链接同步）。
 所有 bio 能力已统一为 `bio-*` / 独立 skill，原 `bio:` 插件命令已退役（备份在 `~/.claude/plugins/.retired-bio-*`）。
 
-> 更新于 2026-05-23。
+> 更新于 2026-06-27。
 
 ## 全流程闭环
 
@@ -36,6 +36,7 @@ bio-project-init → bio-zoom-out → bio-grill  →  bio-diagnose
 | 清 AI 痕迹 | **bio-ai-clean** | 扫除 AI 痕迹（HARD 自动清 / SOFT 只标记，单一真源脚本） | 清 AI 痕迹、去 AI 味、交付前清理 | 完整打包→bio-deliver |
 | 交付 | **bio-deliver** | 一键打包：审计门控→收集→清痕迹→Word 验证→Win 兼容 ZIP | 交付、打包、发给客户、出包 | 仅复制部分文件→手动 |
 | 产新见解 | **bio-roundtable** | 圆桌：从已有结果产新假说/新切口/验证方案（insight/validation） | 圆桌、roundtable、新见解、下一步验证 | 数据质量未确认时不用 |
+| 贯穿·交接 | **bio-handoff** | 写/读交接棒：在制状态写进 HANDOFF.md，跨 /clear /compact 续接；含审核口径合同（审批只认它） | 交接、handoff、续上、clear/compact 前先记、换上下文接着干 | 快速 compact→save；从零建图→bio-zoom-out |
 
 ## 关键工程约定
 
@@ -49,7 +50,7 @@ bio-project-init → bio-zoom-out → bio-grill  →  bio-diagnose
 
 ## 与通用工具的边界
 - 环境预检 → `preflight` ｜ 传文件到 Windows → `transfer` ｜ 做 PPT → `ppt`
-- 会话交接 → `save` / `now` ｜ 论文写作/润色/引用 → `nature-*` 全家桶
+- 会话交接 → `bio-handoff`（结构化·含审核口径合同）/ `save`（快速 compact）/ `now` ｜ 论文写作/润色/引用 → `nature-*` 全家桶
 
 ## 维护备注
 - 新增/修改 bio skill 后，记得 `ln -s ~/.claude/skills/<name> ~/.codex/skills/<name>` 同步 Codex。
