@@ -4,13 +4,31 @@
 import sys
 import json
 import os
+import re
 import shutil
 import subprocess
 
 
+def _find_handoff(start):
+    """从 cwd 起向上找最多 3 层的 HANDOFF.md（项目根可能是上级目录）。"""
+    d = os.path.abspath(start or ".")
+    for _ in range(3):
+        p = os.path.join(d, "HANDOFF.md")
+        if os.path.isfile(p):
+            return p
+        parent = os.path.dirname(d)
+        if parent == d:
+            break
+        d = parent
+    return None
+
+
 def main():
+    cwd = "."
     try:
-        json.load(sys.stdin)
+        data = json.load(sys.stdin)
+        if isinstance(data, dict):
+            cwd = data.get("cwd") or "."
     except Exception:
         pass
 
@@ -43,13 +61,32 @@ def main():
                  'cat(if(length(miss))paste0("缺包:",paste(miss,collapse=",")) else "R包✓",'
                  'if(cjk)"·CJK字体✓" else "·CJK字体✗")'],
                 capture_output=True, text=True, timeout=6)
-            import re
             m = re.search(r'(?:R包✓|缺包:[^\n]*)(?:\s*·CJK字体[✓✗])?', r.stdout or "")
             r_status = m.group(0).strip() if m else "未检"
         except Exception:
             r_status = "R检查超时(可手动 /preflight)"
 
     ctx = "🔎 环境预检：" + " · ".join(parts) + " · R: " + r_status
+
+    # 交接棒检测：项目根有 HANDOFF.md → 提示先续上（接手/审批前别凭残留 context 硬接）
+    hp = _find_handoff(cwd)
+    if hp:
+        goal = ""
+        try:
+            with open(hp, encoding="utf-8") as f:
+                txt = f.read()
+            m = re.search(r'##\s*现在在做什么\s*\n+\s*([^\n]+)', txt)
+            if m:
+                goal = "：" + m.group(1).strip()[:80]
+        except Exception:
+            pass
+        try:
+            rel = os.path.relpath(hp, cwd) if cwd not in (".", None) else hp
+        except Exception:
+            rel = hp
+        ctx += (f"\n📌 检测到交接棒 {rel}{goal} → 接手/审批前先用 bio-handoff 续上"
+                "（读快照 + 复述确认再动手）")
+
     json.dump({"hookSpecificOutput": {"hookEventName": "SessionStart",
                                        "additionalContext": ctx}}, sys.stdout)
 
