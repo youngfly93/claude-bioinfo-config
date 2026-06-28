@@ -1,5 +1,8 @@
-name bio-goal
-description 把生信外包项目放进可验证 goal loop：生成 /goal 完成条件，要求 preflight/validate/audit/AI扫描/打包/proof 全部通过。触发条件：用户说 goal loop、harness goal、持续执行直到交付、自动推进到可交付、bio-goal。
+---
+name: bio-goal
+description: 把生信外包项目放进可验证 goal loop：生成 /goal 完成条件，要求 preflight/validate/audit/AI扫描/打包/proof 全部通过。触发条件：用户说 goal loop、harness goal、持续执行直到交付、自动推进到可交付、bio-goal。
+---
+
 # bio-goal：生信交付 goal loop 入口
 
 `bio-goal` 的职责不是直接分析数据，而是把当前项目转成 Claude Code `/goal` 能持续推进、且能被 harness 证明完成的目标。
