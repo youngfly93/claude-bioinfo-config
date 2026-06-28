@@ -3,6 +3,10 @@
 set -eu
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)"
 H="$ROOT/harness"
+
+# 关键词别撞生信术语：ai_trace_scan 自检（基因 GPT2/GEMINI 不报、真 AI 照报）
+python3 "$ROOT/skills/bio-deliver/scripts/ai_trace_scan.py" selftest
+
 TMP="${TMPDIR:-/tmp}/bio_harness_smoke_$$"
 trap 'rm -rf "$TMP"' EXIT
 cp -R "$ROOT/tests/fixtures/minimal_project" "$TMP"
