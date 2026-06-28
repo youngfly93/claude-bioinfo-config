@@ -89,7 +89,7 @@ python3 ${SKILL_DIR}/scripts/ai_trace_scan.py clean <directory>
 
 ### 交付目录标准结构（主题优先）
 
-`delivery/项目名_交付_YYYYMMDD/` 下按下面结构组织：客户友好、图/表/脚本物理隔离、可一路溯源。
+`delivery/项目名_交付_YYYYMMDD/` 下按下面结构组织：客户友好、图/表/脚本物理隔离、可一路溯源。**此结构由 Step 3.5 的 `structure_check.py` 打包前机器强制**（完整模板见 `harness/templates/delivery_structure.md`，可直接拷骨架）。
 
 ```
 项目名_交付_YYYYMMDD/
@@ -130,8 +130,10 @@ python3 ${SKILL_DIR}/scripts/ai_trace_scan.py clean <directory>
 - `NN_溯源表.xlsx`：承重结果/图逐条，列含 结果/图路径、所属主题、源数据(文件:列)、生成脚本、关键参数/阈值；
 - `NN_分析代码/README_脚本说明.md`：逐脚本写明 输入 → 处理 → 输出到哪个主题。
 
-**Step 3.5 — 去冗余（客户包要「无冗余、好找」）**
-打包前跑 `${CLAUDE_PLUGIN_ROOT:-$HOME/.claude}/harness/delivery/dedup_check.py delivery/`：**P2（多版本 `_v2`/`_final`/副本/草稿残留）必须清零**，P3（内容完全相同的重复文件）复核。客户包里同一交付物只出现一次、命名清楚。
+**Step 3.5 — 去冗余 + 结构校验（客户包要「结构清晰、无冗余、好找」）**
+打包前两道机器 gate（均在 `${CLAUDE_PLUGIN_ROOT:-$HOME/.claude}/harness/delivery/` 下）：
+- `dedup_check.py delivery/`：**P2（多版本 `_v2`/`_final`/副本/草稿残留）必须清零**，P3（内容完全相同的重复）复核——同一交付物只出现一次。
+- `structure_check.py delivery/`：核对是否合「标准结构」——**P1（图/ 混进表、表/ 混进图、没报告）必拦**；P2（无 01_分析报告、主题没分图/表、根目录散文件）整改；P3（缺溯源表/导航、编号跳号）。让客户结构清晰、一眼定位。
 
 **Step 4 — AI 痕迹 + 隐私扫描**
 - AI 痕迹：调用 `ai_trace_scan.py delivery/`。发现 → 修复 → 重扫确认。

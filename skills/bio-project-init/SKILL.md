@@ -33,6 +33,7 @@ description: >-
 - `numeric_reference.tsv` / `report_claims.tsv`：表头 `key\tvalue\tsource_file\tsource_column`（report_claims 用 `claim_id\tclaim\tvalue\tsource_file\tsource_column\tstatus`）。
 - `reference.lock`：`organism / genome_build / annotation / created_at`（版本锁；先留 `?` 待确认）。
 - 目录：`results/`、`figures/`、`scripts/`、`reports/`、`delivery/`、`.work/`（过程草稿，可丢）。
+- `delivery/结构说明.md`：拷自 `${CLAUDE_PLUGIN_ROOT:-$HOME/.claude}/harness/templates/delivery_structure.md`——交付时照这个标准结构摆（`bio-deliver` 的 `structure_check.py` 会强制）。
 - `DOCS_INDEX.md`：真源清单（列出上面哪几个是权威文档）。
 
 > 中文内容一律用 Write 工具写（别用 shell heredoc/echo，防 CJK 乱码）。
