@@ -26,7 +26,9 @@ description: >-
 
 确认后**自包含生成**（用 Write/`mkdir -p` 直接建，不依赖任何外部脚本或机器特定路径）：
 
-- `plan.md`：预填充分析计划，含 QC 断言和 `?` 占位符（背景/数据/设计/阈值/contrast/QC 数值留 `?`）。
+- `plan.md`：**设计真源**——预填充分析计划，含背景/需求、数据、设计、阈值、contrast、QC 断言，`?` 占位符待补。**客户需求默认落「背景」段**，不单独建 requirements.md。
+- `spec.md`：**执行+验收清单**，从 plan.md 拆出（设计锁定后展开）。状态语法 `[ ]`/`[~]`/`[x]`/`[!]`（harness 自定义、正则解析，非 GitHub checkbox 渲染）；每条带「验收:」机器可核证据。骨架见下「spec.md 模板」。
+- `requirements.md`（**可选，不默认生成**）：仅当有客户合同 / 长邮件 / 聊天记录要整理时再建；否则需求记在 `plan.md` 背景段。
 - `CLAUDE.md`：项目 agent 行为配置。
 - `execution_log.md`：执行/审计流水账模板（append-only）。
 - `HANDOFF.md`：当前状态快照空模板（见 `bio-handoff`，与流水账分工不混）。
@@ -37,6 +39,29 @@ description: >-
 - `DOCS_INDEX.md`：真源清单（列出上面哪几个是权威文档）。
 
 > 中文内容一律用 Write 工具写（别用 shell heredoc/echo，防 CJK 乱码）。
+
+## spec.md 模板
+
+职责写死、不抢真源：`plan.md` = 设计真源；`spec.md` = 只管执行步骤、状态、验收证据。按分析类型预填几个阶段占位，具体步骤等 `bio-grill` 锁设计后再展开：
+
+```markdown
+# spec.md · <项目名> 执行清单
+
+> 派生自 `plan.md`。`plan.md` 是设计真源；本文件只管执行步骤、状态和验收证据。
+> 状态语法（harness 自定义，正则解析，非 GitHub 渲染）: `[ ]` 未开始 · `[~]` 进行中(@agent) · `[x]` 完成 · `[!]` 卡住
+> `[x]` = 验收证据存在且可复核（文件 / 断言 / 表格行数 / 图件 / proof-audit 之一）；细节写 `execution_log.md`，承重数字写 `numeric_reference.tsv` / `report_claims.tsv`。
+
+## S1 · 质控
+- [ ] **S1.1 样本表检查** — 验收: `metadata/sample_sheet.tsv` 可读、sample_id 无重复、group >= 2
+- [ ] **S1.2 QC 汇总** — 验收: `results/qc/multiqc.html` 存在
+
+## S2 · 差异分析
+- [ ] **S2.1 DESeq2 差异表达** — 验收: `results/deg/deg.tsv` 存在且含 `gene_id/log2FC/padj`
+- [ ] **S2.2 火山图** — 验收: `figures/volcano.pdf` 存在（nature_theme 风格）
+```
+
+- 每条任务**必须有「验收:」**，且验收是机器可核的证据，不是“做完了”的自评——没有证据就不能勾 `[x]`。
+- 步骤号（S1.1）让 `execution_log.md` 与 git commit 都能引用对账；`[~]` 后挂 `@agent` 接写锁（谁持 `.bio_harness/.lock` 谁在写那步）。
 
 ## 初始化后检查
 
@@ -61,7 +86,7 @@ description: >-
 | 标准目录 | ✅/❌ | ... |
 | 未填占位符 | N | ... |
 
-下一步：先补齐 plan.md 中的 `?`，然后运行 bio-grill 做开工前设计确认。
+下一步：补齐 plan.md 的 `?` → bio-grill 锁设计 → 展开 spec.md 执行清单 → 开跑。
 ```
 
 ## 统一风格与溯源接线
@@ -77,4 +102,5 @@ description: >-
 
 - 不在用户未确认时覆盖已有项目文件。
 - 不替用户编造数据来源、分组或 QC 数值。
-- 生成后不要直接开跑分析；先补齐 `plan.md`，再进入 `bio-grill`。
+- 生成后不要直接开跑分析；先补齐 `plan.md` → `bio-grill` 锁设计 → 展开 `spec.md`，再开跑。
+- `spec.md` 与 `plan.md` 职责不互抢：plan=设计真源，spec=执行步骤+状态+验收证据；别把设计/阈值复制进 spec，也别在 plan 里记勾选状态。

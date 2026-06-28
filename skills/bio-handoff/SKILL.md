@@ -35,6 +35,7 @@ description: >-
 
 ## 进行中 / 下一步（精确到动作）
 - <如：下一步跑 scripts/04_enrich.R；输入 deg.tsv；卡在 KEGG 物种参数未定>
+- 有 `spec.md` 时，下一步直接取自其 `[~]`（在做）/ `[ ]`（待做）项，别在这里另记一份 todo。
 
 ## 已锁决策 & 审核口径（合同 —— 审批每次只认这段）
 - 阈值：FDR<0.05 · |logFC|≥1 · <其它>
@@ -46,11 +47,12 @@ description: >-
 - <开放问题、在等用户确认的点>
 
 ## 复盘指针（接手按序读）
-1. plan.md（设计与需求真源）
-2. 本文件（在制状态）
-3. numeric_reference.tsv / report_claims.tsv（数字真源）
-4. audit/*.md · fix_log.md（审计/修复进展）
-5. docs/analysis-decisions/（已落档的关键决策）
+1. plan.md（设计真源）
+2. spec.md（执行清单：`[ ]`/`[~]` 项 = 下一步要做 / 在做的）
+3. 本文件（在制状态）
+4. numeric_reference.tsv / report_claims.tsv（数字真源）
+5. audit/*.md · fix_log.md（审计/修复进展）
+6. docs/analysis-decisions/（已落档的关键决策）
 ```
 
 **两条铁律**：
