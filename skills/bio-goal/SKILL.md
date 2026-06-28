@@ -35,15 +35,18 @@ echo "$HARNESS_ROOT"
    python3 harness/delivery/proof.py run --name audit . -- bash harness/quality/run_audit.sh .
    python3 harness/delivery/proof.py run --name ai_scan . -- bash harness/delivery/ai_scan.sh .
    python3 harness/delivery/proof.py run --name package . -- bash harness/delivery/package.sh pack delivery
+   python3 harness/delivery/proof.py collect .            # 自动把 zip 登记进 proof.artifacts
+
+   （实际完成条件以 `bio_goal.sh` 输出为准——绝对路径，插件安装/任意 cwd 下都能跑。）
 
 2. 所有命令 exit_code=0。若 P0/P1 存在，必须修复后重跑；若只有 P2/P3，写入 proof open_warnings，可最终 PASS_WITH_WARN。
 
 3. 交付目录至少包含：报告或交付说明、图/表或主题目录、report_claims.tsv 或 numeric_reference.tsv、audit/audit.json、proof.json、goal_proof.md、zip 与 md5。
 
-4. final status 必须是 PASS 或 PASS_WITH_WARN：
+4. final status 必须是 PASS 或 PASS_WITH_WARN（finalize 会**强校验**：必需命令齐、全 exit 0、有 zip 产物、有 audit/audit.json，否则拒绝并置 FAIL——人工填不进去）：
    python3 harness/delivery/proof.py finalize . --status PASS
-   或：
-   python3 harness/delivery/proof.py finalize . --status PASS_WITH_WARN --warning "P2: ..."
+   或：python3 harness/delivery/proof.py finalize . --status PASS_WITH_WARN --warning "P2: ..."
+   自动化自检：python3 harness/delivery/proof.py status --require-pass .   # IN_PROGRESS 返回 1
 
 5. 若连续 10 个 turn 仍不能完成，停止并输出 blocker、当前 proof 状态、最小下一步修复。
 ```

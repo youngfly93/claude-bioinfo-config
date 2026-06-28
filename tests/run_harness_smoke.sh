@@ -1,20 +1,22 @@
 #!/usr/bin/env sh
+# 端到端 smoke：在最小 fixture 上跑完整 bio-goal proof 链（全部命令进 proof + collect + 强校验 finalize）。
 set -eu
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)"
+H="$ROOT/harness"
 TMP="${TMPDIR:-/tmp}/bio_harness_smoke_$$"
 trap 'rm -rf "$TMP"' EXIT
 cp -R "$ROOT/tests/fixtures/minimal_project" "$TMP"
 cd "$TMP"
 
-bash "$ROOT/harness/specs/preflight_check.sh" .
-bash "$ROOT/harness/quality/validate.sh" --strict .
-bash "$ROOT/harness/quality/run_audit.sh" .
-bash "$ROOT/harness/delivery/ai_scan.sh" .
-python3 "$ROOT/harness/delivery/proof.py" init .
-python3 "$ROOT/harness/delivery/proof.py" run --name preflight . -- bash "$ROOT/harness/specs/preflight_check.sh" .
-bash "$ROOT/harness/delivery/package.sh" pack delivery minimal_project
-python3 "$ROOT/harness/delivery/proof.py" artifact . "minimal_project_交付_$(date +%Y%m%d).zip"
-python3 "$ROOT/harness/delivery/proof.py" finalize . --status PASS
+python3 "$H/delivery/proof.py" init .
+python3 "$H/delivery/proof.py" run --name preflight . -- bash "$H/specs/preflight_check.sh" .
+python3 "$H/delivery/proof.py" run --name validate_strict . -- bash "$H/quality/validate.sh" --strict .
+python3 "$H/delivery/proof.py" run --name audit . -- bash "$H/quality/run_audit.sh" .
+python3 "$H/delivery/proof.py" run --name ai_scan . -- bash "$H/delivery/ai_scan.sh" .
+python3 "$H/delivery/proof.py" run --name package . -- bash "$H/delivery/package.sh" pack "$TMP/delivery" minimal_project
+python3 "$H/delivery/proof.py" collect .
+python3 "$H/delivery/proof.py" finalize . --status PASS
+python3 "$H/delivery/proof.py" status --require-pass .
 python3 "$ROOT/hooks/delivery_gate.py"
 
 echo "bio harness smoke: PASS"

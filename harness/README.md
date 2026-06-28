@@ -34,9 +34,9 @@ audit/
   audit.json
 report_claims.tsv
 numeric_reference.tsv
-reference.lock
-contract.yaml
-data_manifest.yaml
+reference.lock          # 建议(版本/注释锁)；缺=P3 建议、不阻断
+contract.yaml           # 可选；不强制那层。仅在采用后才校验字段(给 sample_sheet/contrast lint 当基准)
+data_manifest.yaml      # 可选；同上。真源仍是 plan.md
 ```
 
 ## 严重度

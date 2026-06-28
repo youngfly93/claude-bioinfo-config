@@ -153,20 +153,71 @@ def cmd_artifact(root: Path, paths: list[str]) -> int:
     return 0
 
 
+REQUIRED_COMMANDS = ["preflight", "validate_strict", "audit", "ai_scan", "package"]
+
+
+def _pass_blockers(root: Path, proof: dict) -> list[str]:
+    """PASS / PASS_WITH_WARN 前必须满足的硬条件；返回未满足项（空=可放行）。"""
+    blockers = []
+    cmds = {c.get("name"): c for c in (proof.get("commands") or [])}
+    for name in REQUIRED_COMMANDS:
+        if name not in cmds:
+            blockers.append(f"缺命令记录: {name}")
+        elif cmds[name].get("exit_code") not in (0, None):
+            blockers.append(f"命令未通过(exit≠0): {name}")
+    paths = [str(a.get("path", "")) for a in (proof.get("artifacts") or [])]
+    if not any(p.endswith(".zip") for p in paths):
+        blockers.append("缺 zip 产物(proof.artifacts 无 .zip；先跑 package + collect)")
+    if not (root / "audit" / "audit.json").exists():
+        blockers.append("缺 audit/audit.json")
+    return blockers
+
+
+def cmd_collect(root: Path) -> int:
+    """自动把交付区的 zip(及同名 .md5 若有)登记进 proof.artifacts，免得 artifact 表为空。"""
+    proof = load(root)
+    existing = {a.get("path") for a in (proof.get("artifacts") or [])}
+    n = 0
+    cands = sorted(root.glob("*.zip")) + sorted((root / "delivery").glob("*.zip"))
+    for z in cands:
+        for f in (z, z.with_suffix(z.suffix + ".md5")):
+            if not (f.exists() and f.is_file()):
+                continue
+            rel = str(f.relative_to(root)) if f.is_relative_to(root) else str(f)
+            if rel in existing:
+                continue
+            proof.setdefault("artifacts", []).append(
+                {"path": rel, "size_bytes": f.stat().st_size, "md5": md5_file(f)})
+            existing.add(rel); n += 1
+    save(root, proof)
+    print(f"collected {n} artifact(s)")
+    return 0
+
+
 def cmd_finalize(root: Path, status: str, warnings: list[str]) -> int:
     proof = load(root)
-    proof["status"] = status
     proof.setdefault("open_warnings", []).extend(warnings)
+    if status in {"PASS", "PASS_WITH_WARN"}:
+        blockers = _pass_blockers(root, proof)
+        if blockers:
+            proof["status"] = "FAIL"
+            save(root, proof)
+            print("proof.py finalize 拒绝 PASS —— 以下硬条件未满足：", file=sys.stderr)
+            for b in blockers:
+                print(f"- {b}", file=sys.stderr)
+            return 1
+    proof["status"] = status
     save(root, proof)
     print(render_markdown(proof))
     return 0 if status in {"PASS", "PASS_WITH_WARN"} else 1
 
 
-def cmd_status(root: Path) -> int:
+def cmd_status(root: Path, require_pass: bool = False) -> int:
     proof = load(root)
     save(root, proof)
     print(render_markdown(proof))
-    return 0 if proof.get("status") in {"PASS", "PASS_WITH_WARN", "IN_PROGRESS"} else 1
+    ok = {"PASS", "PASS_WITH_WARN"} if require_pass else {"PASS", "PASS_WITH_WARN", "IN_PROGRESS"}
+    return 0 if proof.get("status") in ok else 1
 
 
 def main() -> int:
@@ -181,12 +232,15 @@ def main() -> int:
     art = sub.add_parser("artifact")
     art.add_argument("project")
     art.add_argument("paths", nargs="+")
+    col = sub.add_parser("collect")
+    col.add_argument("project", nargs="?", default=".")
     fin = sub.add_parser("finalize")
     fin.add_argument("project")
     fin.add_argument("--status", choices=["PASS", "PASS_WITH_WARN", "FAIL"], required=True)
     fin.add_argument("--warning", action="append", default=[])
     st = sub.add_parser("status")
     st.add_argument("project", nargs="?", default=".")
+    st.add_argument("--require-pass", action="store_true")
     args = ap.parse_args()
 
     if args.cmd == "init":
@@ -200,10 +254,12 @@ def main() -> int:
         return cmd_run(Path(args.project).resolve(), args.name, args.command)
     if args.cmd == "artifact":
         return cmd_artifact(Path(args.project).resolve(), args.paths)
+    if args.cmd == "collect":
+        return cmd_collect(Path(args.project).resolve())
     if args.cmd == "finalize":
         return cmd_finalize(Path(args.project).resolve(), args.status, args.warning)
     if args.cmd == "status":
-        return cmd_status(Path(args.project).resolve())
+        return cmd_status(Path(args.project).resolve(), args.require_pass)
     return 2
 
 if __name__ == "__main__":
