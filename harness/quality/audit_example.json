@@ -1,0 +1,72 @@
+{
+  "project": "tests/fixture_bulk_rnaseq",
+  "timestamp": "2026-03-30T21:15:00+08:00",
+  "round": 1,
+  "dimensions": {
+    "completeness": {
+      "status": "PASS",
+      "checks": [
+        {"name": "plan_step1_output", "status": "PASS", "detail": "normalized_counts.csv 存在且非空 (237 bytes)", "source_file": "results/normalized_counts.csv"},
+        {"name": "plan_step2_output", "status": "PASS", "detail": "deg_results.csv 存在且非空 (137 bytes)", "source_file": "results/deg_results.csv"},
+        {"name": "plan_step3_go", "status": "PASS", "detail": "enrichment_go.csv 存在且非空", "source_file": "results/enrichment_go.csv"},
+        {"name": "plan_step3_kegg", "status": "PASS", "detail": "enrichment_kegg.csv 存在且非空", "source_file": "results/enrichment_kegg.csv"},
+        {"name": "delivery_fig1", "status": "PASS", "detail": "Fig1_volcano.png 存在", "source_file": "figures/Fig1_volcano.png"},
+        {"name": "delivery_fig2", "status": "PASS", "detail": "Fig2_heatmap.png 存在", "source_file": "figures/Fig2_heatmap.png"}
+      ],
+      "summary": "plan.md 所有 Step 产出文件完整"
+    },
+    "accuracy": {
+      "status": "FAIL",
+      "checks": [
+        {"name": "sample_total", "status": "PASS", "detail": "样本总数一致", "expected": "12", "actual": "12"},
+        {"name": "deg_up_count", "status": "FAIL", "detail": "上调基因数不一致", "expected": "1", "actual": "2", "source_file": "results/deg_results.csv"}
+      ],
+      "summary": "报告中上调基因数与源数据不一致"
+    },
+    "methodology": {
+      "status": "PASS",
+      "checks": [
+        {"name": "deg_method", "status": "PASS", "detail": "DESeq2 用于差异分析，输入为 raw counts"},
+        {"name": "multiple_testing", "status": "PASS", "detail": "BH 校正已应用，使用 padj"},
+        {"name": "enrichment_background", "status": "PASS", "detail": "ORA 使用全基因组作为 background"}
+      ],
+      "summary": "方法选择合理"
+    },
+    "figures": {
+      "status": "WARN",
+      "checks": [
+        {"name": "fig1_volcano_threshold", "status": "PASS", "detail": "火山图阈值线与 DEG 定义一致"},
+        {"name": "fig2_heatmap_labels", "status": "WARN", "detail": "热图 y 轴基因标签字体偏小，打印后可能不清晰"}
+      ],
+      "summary": "图表基本合格，热图标签建议放大"
+    },
+    "delivery": {
+      "status": "PASS",
+      "checks": [
+        {"name": "ai_scan", "status": "PASS", "detail": "未发现 AI 痕迹"},
+        {"name": "naming", "status": "PASS", "detail": "文件命名符合规范"},
+        {"name": "zip_clean", "status": "PASS", "detail": "ZIP 不含 __MACOSX 或 ._ 文件"}
+      ],
+      "summary": "交付规范达标"
+    }
+  },
+  "overall": "FAIL",
+  "action_items": [
+    {
+      "dimension": "accuracy",
+      "severity": "P0",
+      "description": "报告中上调基因数（2）与 deg_results.csv 中实际上调数（1）不一致",
+      "fix": "从 deg_results.csv 重新计算 log2FC>1 & padj<0.05 的基因数，更新报告",
+      "file": "reports/analysis_report.txt",
+      "auto_fixable": true
+    },
+    {
+      "dimension": "figures",
+      "severity": "P2",
+      "description": "Fig2 热图 y 轴基因标签字体偏小",
+      "fix": "调整 theme(axis.text.y = element_text(size = 8))",
+      "file": "figures/Fig2_heatmap.png",
+      "auto_fixable": true
+    }
+  ]
+}

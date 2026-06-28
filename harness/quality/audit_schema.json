@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bio-Result Audit Report",
+  "description": "bio-result-auditor 输出的结构化审计报告，用于自动化 audit-fix-reaudit 循环",
+  "type": "object",
+  "required": ["project", "timestamp", "round", "dimensions", "overall", "action_items"],
+  "properties": {
+    "project": {
+      "type": "string",
+      "description": "项目名称或路径"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "审计时间"
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "当前审计轮次（1-5）"
+    },
+    "dimensions": {
+      "type": "object",
+      "required": ["completeness", "accuracy", "methodology", "figures", "delivery"],
+      "properties": {
+        "completeness": { "$ref": "#/$defs/dimension_result" },
+        "accuracy": { "$ref": "#/$defs/dimension_result" },
+        "methodology": { "$ref": "#/$defs/dimension_result" },
+        "figures": { "$ref": "#/$defs/dimension_result" },
+        "delivery": { "$ref": "#/$defs/dimension_result" }
+      }
+    },
+    "overall": {
+      "type": "string",
+      "enum": ["PASS", "PASS_WITH_WARN", "FAIL", "HALT"],
+      "description": "PASS=全部通过, PASS_WITH_WARN=有WARN维度(交叉验证未完成), FAIL=有维度未通过, HALT=需人工介入"
+    },
+    "action_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/action_item" },
+      "description": "需要修复的具体动作（overall=PASS 时为空数组）"
+    },
+    "halt_reason": {
+      "type": "string",
+      "description": "当 overall=HALT 时，说明需要人工判断的原因"
+    }
+  },
+  "$defs": {
+    "dimension_result": {
+      "type": "object",
+      "required": ["status", "checks"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "WARN"],
+          "description": "PASS=通过, FAIL=未通过, WARN=有警告但不阻断"
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "status", "detail"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "检查项名称，如 'plan_step_1_output_exists'"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["PASS", "FAIL", "WARN"]
+              },
+              "detail": {
+                "type": "string",
+                "description": "具体检查结果描述"
+              },
+              "expected": {
+                "type": "string",
+                "description": "期望值（如有）"
+              },
+              "actual": {
+                "type": "string",
+                "description": "实际值（如有）"
+              },
+              "source_file": {
+                "type": "string",
+                "description": "对应的源文件路径"
+              }
+            }
+          }
+        },
+        "summary": {
+          "type": "string",
+          "description": "该维度的一句话总结"
+        }
+      }
+    },
+    "action_item": {
+      "type": "object",
+      "required": ["dimension", "severity", "description", "fix"],
+      "properties": {
+        "dimension": {
+          "type": "string",
+          "enum": ["completeness", "accuracy", "methodology", "figures", "delivery"],
+          "description": "所属维度"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["P0", "P1", "P2"],
+          "description": "P0=必须立即修复, P1=应当修复, P2=建议修复"
+        },
+        "description": {
+          "type": "string",
+          "description": "问题描述"
+        },
+        "fix": {
+          "type": "string",
+          "description": "建议的修复动作"
+        },
+        "file": {
+          "type": "string",
+          "description": "涉及的文件路径"
+        },
+        "auto_fixable": {
+          "type": "boolean",
+          "description": "是否可以自动修复（true=Agent可自行修复, false=需人工确认）"
+        }
+      }
+    }
+  }
+}
