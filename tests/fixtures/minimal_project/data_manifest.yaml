@@ -1,0 +1,6 @@
+sample_sheet: metadata/sample_sheet.tsv
+inputs:
+  - path: results/summary.tsv
+    type: summary_table
+    source: fixture
+    md5: TODO

@@ -45,6 +45,11 @@
             "type": "command",
             "command": "python3 ~/.claude/hooks/docx_autocheck.py",
             "timeout": 20
+          },
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/delivery_gate.py",
+            "timeout": 8
           }
         ]
       }

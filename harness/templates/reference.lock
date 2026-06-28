@@ -1,0 +1,8 @@
+organism: Homo sapiens
+genome_build: GRCh38
+annotation: GENCODE v44
+database_versions:
+  GO: "TODO"
+  KEGG: "TODO"
+created_at: 2026-06-28
+notes: "Lock all reference/database/software versions used in the report."

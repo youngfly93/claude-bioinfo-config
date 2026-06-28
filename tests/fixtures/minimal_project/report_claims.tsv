@@ -1,0 +1,2 @@
+claim_id	claim	value	source_file	source_column	status
+C001	显著差异基因数量为 42	42	results/summary.tsv	value	VERIFIED

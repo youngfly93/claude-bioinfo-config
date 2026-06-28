@@ -19,15 +19,23 @@
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/docx_autocheck.py", "timeout": 20 }
+          { "type": "command", "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/docx_autocheck.py", "timeout": 20 },
+          { "type": "command", "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/delivery_gate.py", "timeout": 8 }
         ]
       }
     ],
     "SessionStart": [
       {
-        "matcher": "startup",
+        "matcher": "startup|resume|clear|compact",
         "hooks": [
           { "type": "command", "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/session_preflight.py", "timeout": 8 }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/precompact_handoff.py", "timeout": 5 }
         ]
       }
     ]

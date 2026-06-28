@@ -1,0 +1,11 @@
+assay: bulk_rnaseq
+organism: Homo sapiens
+deliverable_type: [md_report, tables, zip]
+sample_sheet: metadata/sample_sheet.tsv
+paired_design: false
+contrasts:
+  - name: case_vs_control
+    numerator: case
+    denominator: control
+acceptance:
+  required_checks: [preflight_pass, validate_strict_pass, audit_no_p0_p1]

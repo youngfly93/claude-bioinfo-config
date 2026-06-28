@@ -38,6 +38,7 @@ bio-project-init → bio-zoom-out → bio-grill  →  bio-diagnose
 | 产新见解 | **bio-roundtable** | 圆桌：从已有结果产新假说/新切口/验证方案（insight/validation） | 圆桌、roundtable、新见解、下一步验证 | 数据质量未确认时不用 |
 | 贯穿·交接 | **bio-handoff** | 写/读交接棒：在制状态写进 HANDOFF.md，跨 /clear /compact 续接；含审核口径合同（审批只认它） | 交接、handoff、续上、clear/compact 前先记、换上下文接着干 | 快速 compact→save；从零建图→bio-zoom-out |
 | 贯穿·收口 | **bio-docs-tidy** | 散落/多版本 md 收口：找当前真源→其余归档进一个 _archive→产 DOCS_INDEX；只归档不删、不跨合作者 | md 太多/太乱、去重 md、哪个最新、收口、整理文档、建文档索引 | 删数据→不适用；交付打包→bio-deliver |
+| 贯穿·完成判据 | **bio-goal** | 把交付塞进可验证 `/goal` 循环：harness 退出码 + `delivery/proof.json`/`goal_proof.md` 当"做完"判据，治"看起来完成了"；科学审计仍归 bio-result-audit | goal loop、harness goal、持续执行直到交付、bio-goal | 科学/数值审计→bio-result-audit；打包→bio-deliver |
 
 ## 关键工程约定
 
