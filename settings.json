@@ -89,7 +89,7 @@
     "codex@openai-codex": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
     "obsidian@obsidian-skills": true,
-    "vercel@claude-plugins-official": true
+    "vercel@claude-plugins-official": false
   },
   "extraKnownMarketplaces": {
     "openai-codex": {
