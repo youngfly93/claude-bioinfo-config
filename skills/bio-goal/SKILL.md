@@ -40,6 +40,7 @@ echo "$HARNESS_ROOT"
    python3 harness/delivery/proof.py run --name ai_scan . -- bash harness/delivery/ai_scan.sh .
    python3 harness/delivery/proof.py run --name privacy_scan . -- python3 harness/delivery/privacy_scan.py delivery
    python3 harness/delivery/proof.py run --name structure_check . -- python3 harness/delivery/structure_check.py delivery
+   python3 harness/delivery/proof.py run --name dedup_check . -- python3 harness/delivery/dedup_check.py delivery
    python3 harness/delivery/proof.py run --name package . -- bash harness/delivery/package.sh pack delivery
    python3 harness/delivery/proof.py collect .            # 自动把 zip 登记进 proof.artifacts
 

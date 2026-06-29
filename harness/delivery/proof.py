@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -46,10 +47,59 @@ def load(root: Path) -> dict:
         "commands": [],
         "artifacts": [],
         "open_warnings": [],
+        "manual_warnings": [],
     }
 
 
+_TABLE_ROW = re.compile(r"^\|\s*(P[0-3]|INFO)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*$")
+
+
+def _parse_findings(stdout: str) -> list:
+    """从命令 stdout 提取 findings。支持两种 harness 输出格式：
+    1) JSON 数组（delivery 类检查 structure_check/dedup_check/privacy_scan）；
+    2) `| severity | code | path | message |` 表格（quality 类 common.print_issues）。"""
+    out = []
+    s = (stdout or "").strip()
+    if s.startswith("["):
+        try:
+            data = json.loads(s)
+        except (ValueError, TypeError):
+            data = None
+        if isinstance(data, list):
+            for d in data:
+                if isinstance(d, dict) and d.get("severity"):
+                    out.append({
+                        "severity": str(d.get("severity")),
+                        "code": str(d.get("code", "")),
+                        "path": str(d.get("path") or d.get("file", "")),
+                        "message": str(d.get("message", "")),
+                    })
+            return out
+    for line in (stdout or "").splitlines():
+        m = _TABLE_ROW.match(line)
+        if m:
+            out.append({"severity": m.group(1), "code": m.group(2), "path": m.group(3), "message": m.group(4)})
+    return out
+
+
+def _refresh_open_warnings(proof: dict) -> None:
+    """open_warnings = 各命令最新记录里的 P2/P3 findings（自动收集）+ manual_warnings（finalize --warning）。
+    幂等：每次 save 从命令记录重算，避免重跑命令时重复/陈旧。P0/P1 会让命令 exit≠0 → 已被裁判，不进 warnings。"""
+    latest = {}
+    for c in proof.get("commands", []) or []:
+        latest[c.get("name")] = c
+    derived = []
+    for name, c in latest.items():
+        for f in c.get("findings", []) or []:
+            if f.get("severity") in ("P2", "P3"):
+                entry = f"{name}: {f.get('severity')} {f.get('code', '')} {f.get('path', '')} — {f.get('message', '')}".strip()
+                if entry not in derived:
+                    derived.append(entry)
+    proof["open_warnings"] = derived + [w for w in (proof.get("manual_warnings", []) or []) if w not in derived]
+
+
 def save(root: Path, proof: dict) -> None:
+    _refresh_open_warnings(proof)
     proof["updated_at"] = now()
     json_path, md_path = proof_paths(root)
     json_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -125,6 +175,7 @@ def cmd_run(root: Path, name: str, command: list[str]) -> int:
         "exit_code": cp.returncode,
         "stdout_log": str(stdout_log.relative_to(root)),
         "stderr_log": str(stderr_log.relative_to(root)),
+        "findings": _parse_findings(cp.stdout),
     }
     proof.setdefault("commands", []).append(record)
     if cp.returncode != 0:
@@ -153,7 +204,7 @@ def cmd_artifact(root: Path, paths: list[str]) -> int:
     return 0
 
 
-REQUIRED_COMMANDS = ["preflight", "validate_strict", "audit", "ai_scan", "privacy_scan", "package"]
+REQUIRED_COMMANDS = ["preflight", "validate_strict", "audit", "ai_scan", "privacy_scan", "structure_check", "package"]
 
 
 def _pass_blockers(root: Path, proof: dict) -> list[str]:
@@ -196,7 +247,7 @@ def cmd_collect(root: Path) -> int:
 
 def cmd_finalize(root: Path, status: str, warnings: list[str]) -> int:
     proof = load(root)
-    proof.setdefault("open_warnings", []).extend(warnings)
+    proof.setdefault("manual_warnings", []).extend(warnings)
     if status in {"PASS", "PASS_WITH_WARN"}:
         blockers = _pass_blockers(root, proof)
         if blockers:
