@@ -16,6 +16,8 @@
 
 > ⚠️ **可移植性**：钩子用 `${CLAUDE_PLUGIN_ROOT}`，可移植；但 skill 内部脚本（docx_check / house 样式等）路径假设装在 `~/.claude`（已脱敏为 `~`）。跨机一键即用需把这些引用也改成 `${CLAUDE_PLUGIN_ROOT}`——当前版本最适合"装进自家 `~/.claude` 或作参考"。
 
+> 📦 **新机器 / Windows 配置**：装插件只给「能力」，不给「政策」（CLAUDE.md 规则不随插件走，要每台机器手写）——完整步骤见 **[`docs/SETUP.md`](docs/SETUP.md)**，工作区政策模板见 **[`docs/workspace.CLAUDE.example.md`](docs/workspace.CLAUDE.example.md)**。可直接交给目标机器的 Claude Code 照着配。
+
 ## 背景
 
 一个生物信息工程师（癌症基因组 / 多组学 / 蛋白组 / 临床报告**外包交付**）的 Claude Code 工作环境。
