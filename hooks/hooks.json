@@ -33,13 +33,6 @@
           { "type": "command", "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/session_preflight.py", "timeout": 8 }
         ]
       }
-    ],
-    "PreCompact": [
-      {
-        "hooks": [
-          { "type": "command", "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/precompact_handoff.py", "timeout": 5 }
-        ]
-      }
     ]
   }
 }
