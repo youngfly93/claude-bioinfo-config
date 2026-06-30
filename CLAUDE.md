@@ -12,6 +12,7 @@
 ## 绘图
 - 出图/重画一律用 `nature-figure` 的 **R 后端**（它问 Python/R 时直接选 R）；Python 只做数据分析，不画图。
 - 脚本顶部 `source("~/.claude/assets/figure-style/nature_theme.R")`（配色/主题/热图/导出/CJK 字体的统一真源），别每张图重定义，一个交付一套风格。
+- 出复杂/复合生信图（oncoprint、circos 圈图、临床森林图、UMAP atlas、单细胞轨迹、多组学复合大图、富集网络、进化树+热图）先过 `nature-figure-archetypes` 的「图型野心阶梯」选型、落图前过「分析严谨护栏」，别默默退回基础柱状图；它仍 source 上面的 `nature_theme.R`，风格不另起。
 
 ## 科研严谨性（交付质量底线）
 - 数字不杜撰：每个数值/统计量/p 值都来自真实结果文件、能溯源到脚本；不确定就标注，绝不编造或凑数。
