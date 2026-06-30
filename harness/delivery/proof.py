@@ -199,7 +199,7 @@ def cmd_artifact(root: Path, paths: list[str]) -> int:
             rel = str(path.relative_to(root))
         except ValueError:
             rel = str(path)
-        proof.setdefault("artifacts", []).append({"path": rel, "size_bytes": path.stat().st_size, "md5": md5_file(path)})
+        proof.setdefault("artifacts", []).append({"path": rel, "size_bytes": path.stat().st_size, "md5": md5_file(path), "sha256": sha256_file(path)})
     save(root, proof)
     return 0
 
@@ -238,7 +238,7 @@ def cmd_collect(root: Path) -> int:
             if rel in existing:
                 continue
             proof.setdefault("artifacts", []).append(
-                {"path": rel, "size_bytes": f.stat().st_size, "md5": md5_file(f)})
+                {"path": rel, "size_bytes": f.stat().st_size, "md5": md5_file(f), "sha256": sha256_file(f)})
             existing.add(rel); n += 1
     save(root, proof)
     print(f"collected {n} artifact(s)")
