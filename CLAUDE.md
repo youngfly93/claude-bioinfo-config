@@ -32,3 +32,4 @@
 - 验收时不用任一 agent 的聊天记录、缓存或主观总结作证据；若两边结论冲突，以 harness 退出码、`audit.json`、`proof.json` 和源表复算结果为准。
 - 除非用户明确要求安装/同步配置，不从本仓库写回 `~/.claude/` 或 `~/.codex/`。
 - **防并发写入污染**：同一项目同一时刻只允许一个 writer；审核/验收 agent 对交付物只读、只写 `audit/`、发现问题只标记不顺手改；验收只审 committed 冻结快照（核对 `proof.json` 的 `git_commit`/`plan_sha256` == 当前 checkout）。写前取项目根 `.bio_harness/.lock`（工具 `harness/lib/agent_lock.sh`，咨询式）。操作细节见 `AGENTS.md` 的「写入隔离与审核独立」。
+- **审计文件用共享标准**：与 Codex 审同一项目时，审计发现写成 `audit/<module>.<agent>.md`（module 用 `plan.md` 任务名逐字、文件头记 `audited_commit`），各写各的、不互踩——防"各写各的、最后不是一个事儿"。格式与裁决规则的**单一真源**见 [`docs/SHARED-AUDIT.md`](docs/SHARED-AUDIT.md)；核对两边是否审同一版：`python3 harness/lib/audit_reconcile.py <项目根>`。

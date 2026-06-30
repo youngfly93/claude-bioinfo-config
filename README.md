@@ -61,7 +61,7 @@
 | `CLAUDE.md` | 全局规则，每会话注入；只放“所有项目都成立”的原则 |
 | `settings.json` | 模型(opus[1m]) / 推理强度 / 启用插件 / PreToolUse 钩子 |
 | `hooks/` | Bash/写入预检钩子：bash3 语法 · 中文写文件 · 非正本目录守护 · 不可逆 git 操作减速带 等 |
-| `docs/` | 设计文档：goal-loop 原理 · 跨机配置(SETUP) · 工作区政策模板 · 写 skill 的尺子(WRITING-SKILLS) |
+| `docs/` | 设计文档：goal-loop 原理 · 跨机配置(SETUP) · 工作区政策模板 · 写 skill 的尺子(WRITING-SKILLS) · 双 agent 审计标准(SHARED-AUDIT) |
 | `assets/figure-style/nature_theme.R` | 统一绘图样式真源：ggplot 主题 + 语义配色 + ComplexHeatmap 热图 + CJK 安全字体自动解析 |
 | `skills/bio-*` | 12 个自定义 skill，串成 开工→出图→审计→报告→交付 流水线；并接 nature-* 发表链 |
 | `commands/` | 自定义 slash 命令 |

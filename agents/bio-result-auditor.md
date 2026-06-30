@@ -156,7 +156,7 @@ tools: Read, Glob, Grep
 
 ## 抗崩溃（作为 subagent / fan-out 被委派时）
 
-- 把每个模块的完整发现**实时写进 `audit/<模块名>.md`**，主线程只回**一行状态摘要**——防撞输出上限/超时丢进度，便于只补跑缺失模块。
+- 把每个模块的完整发现**实时写进 `audit/<module>.claude.md`**（module 用 `plan.md` 任务名逐字、文件头记 `audited_commit`；双 agent 共享审计标准见 `docs/SHARED-AUDIT.md`），主线程只回**一行状态摘要**——防撞输出上限/超时丢进度，便于只补跑缺失模块。
 - 若被要求返回结构化发现，按 `severity(P0-P3) / title / evidence / file` 字段组织。
 
 ## 特定项目适配
