@@ -9,6 +9,47 @@ from common import Issue, exit_code_for, first_existing, print_issues, project_r
 REQUIRED = ["claim_id", "claim", "value", "source_file", "source_column"]
 
 
+def _numeric(s):
+    try:
+        return float(str(s).strip())
+    except (ValueError, TypeError):
+        return None
+
+
+def _reconcile_value(root: Path, row: dict, idx: int, path: Path, issues: list) -> None:
+    """把承重数字与源表单元格对账——堵 known_issues #1（报告数值≠源数据，P0）。
+    保守：只对【纯数字 value + .tsv/.csv 源 + 指定列】对账，其余跳过（避免文本误报）。"""
+    value = (row.get("value") or "").strip()
+    sf = (row.get("source_file") or "").strip()
+    sc = (row.get("source_column") or "").strip()
+    if not (value and sf and sc) or _numeric(value) is None:
+        return                                   # 缺字段或文本 value：不在此对账
+    src = root / sf
+    if not src.exists():
+        src = Path(sf)
+    if not src.exists() or src.suffix.lower() not in (".tsv", ".csv"):
+        return                                   # 源缺失已由 SOURCE_MISSING 覆盖；非表格源跳过
+    delim = "\t" if src.suffix.lower() == ".tsv" else ","
+    try:
+        with src.open(newline="", encoding="utf-8-sig") as f:
+            srows = list(csv.DictReader(f, delimiter=delim))
+    except Exception:
+        return
+    if not srows:
+        return
+    if sc not in (srows[0].keys() or []):
+        issues.append(Issue("P1", "REPORT_CLAIM_SOURCE_COLUMN_NOT_FOUND",
+                            f"第 {idx} 行 source_column '{sc}' 不在 {sf} 表头", str(path)))
+        return
+    vnum = _numeric(value)
+    cells = [(r.get(sc) or "").strip() for r in srows]
+    matched = value in cells or any(_numeric(c) == vnum for c in cells if _numeric(c) is not None)
+    if not matched:
+        issues.append(Issue("P1", "REPORT_CLAIM_VALUE_NOT_IN_SOURCE",
+                            f"第 {idx} 行 value={value} 在源 {sf} 列 '{sc}' 中找不到——数值与源数据不一致？",
+                            str(path)))
+
+
 def has_report(root: Path) -> bool:
     for pat in ["*.docx", "*.pdf", "*.md", "reports/*.docx", "reports/*.pdf", "reports/*.md", "delivery/**/*.docx", "delivery/**/*.pdf"]:
         if any(root.glob(pat)):
@@ -40,6 +81,7 @@ def run(root: Path) -> list[Issue]:
         sf = (row.get("source_file") or "").strip()
         if sf and not (root / sf).exists() and not Path(sf).exists():
             issues.append(Issue("P1", "REPORT_CLAIM_SOURCE_MISSING", f"第 {idx} 行 source_file 不存在：{sf}", str(path)))
+        _reconcile_value(root, row, idx, path, issues)
         status = (row.get("status") or "").strip().upper()
         if "status" in cols and status and status not in {"VERIFIED", "CHECKED", "PASS", "OK"}:
             issues.append(Issue("P2", "REPORT_CLAIM_STATUS_NOT_VERIFIED", f"第 {idx} 行 status 不是 VERIFIED/PASS：{status}", str(path)))

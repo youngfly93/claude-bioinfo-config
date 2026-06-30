@@ -26,4 +26,7 @@ python3 "$H/delivery/proof.py" finalize . --status PASS
 python3 "$H/delivery/proof.py" status --require-pass .
 python3 "$ROOT/hooks/delivery_gate.py"
 
+# 负向：坏案例 fixture——故意植入缺陷，门必须拦住（把 known_issues 高频错变成可执行保证）
+python3 "$ROOT/tests/run_badcase_fixtures.py"
+
 echo "bio harness smoke: PASS"
