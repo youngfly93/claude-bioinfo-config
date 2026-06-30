@@ -32,8 +32,10 @@
 │  ├─ CLAUDE.md         全局原则（关于用户 / 绘图 / 科研严谨性）
 │  ├─ settings.json     model / effort / 插件 / 钩子
 │  ├─ hooks/            机械钩子，每条 Bash 自动跑
-│  │   ├─ bash3_check.py        bash4 语法预警
-│  │   └─ cjk_shell_check.py    中文写文件 → 提醒用 Python
+│  │   ├─ bash3_check.py            bash4 语法预警
+│  │   ├─ cjk_shell_check.py        中文写文件 → 提醒用 Python
+│  │   ├─ canonical_guard.py        改/删非正本目录 → 确认
+│  │   └─ destructive_git_guard.py  不可逆 git 操作（reset --hard 等）→ 确认
 │  └─ assets/figure-style/nature_theme.R   统一 house 样式（主题+热图+CJK安全）
 │
 ├─ ② agents/  —— 自定义子代理（独立模型 + 独立上下文）
@@ -58,7 +60,8 @@
 |---|---|
 | `CLAUDE.md` | 全局规则，每会话注入；只放“所有项目都成立”的原则 |
 | `settings.json` | 模型(opus[1m]) / 推理强度 / 启用插件 / PreToolUse 钩子 |
-| `hooks/` | 两个 Bash 预检钩子（bash3 语法 / 中文写文件） |
+| `hooks/` | Bash/写入预检钩子：bash3 语法 · 中文写文件 · 非正本目录守护 · 不可逆 git 操作减速带 等 |
+| `docs/` | 设计文档：goal-loop 原理 · 跨机配置(SETUP) · 工作区政策模板 · 写 skill 的尺子(WRITING-SKILLS) |
 | `assets/figure-style/nature_theme.R` | 统一绘图样式真源：ggplot 主题 + 语义配色 + ComplexHeatmap 热图 + CJK 安全字体自动解析 |
 | `skills/bio-*` | 12 个自定义 skill，串成 开工→出图→审计→报告→交付 流水线；并接 nature-* 发表链 |
 | `commands/` | 自定义 slash 命令 |

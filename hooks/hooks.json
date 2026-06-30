@@ -7,7 +7,8 @@
           { "type": "command", "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/bash3_check.py", "timeout": 5 },
           { "type": "command", "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/cjk_shell_check.py", "timeout": 5 },
           { "type": "command", "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/canonical_guard.py", "timeout": 5 },
-          { "type": "command", "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/nature_figure_guard.py", "timeout": 5 }
+          { "type": "command", "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/nature_figure_guard.py", "timeout": 5 },
+          { "type": "command", "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/destructive_git_guard.py", "timeout": 5 }
         ]
       },
       {
