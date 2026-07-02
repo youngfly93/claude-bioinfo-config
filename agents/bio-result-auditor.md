@@ -77,6 +77,23 @@ tools: Read, Glob, Grep
 | claim | 位置 | 源数据(文件:列/单元格) | 复算值 | 一致? |
 |---|---|---|---|---|
 
+### 第六步·补：方法保真三反射（复算之外必做——复算只证"数字非造假"，证不了"方法对"）
+
+⚠️ 关键认知：**被偷换/跳过的方法，会从偷换后的计算里产出真实、可复现的数字，复算照样逐位对上。** 所以"复算一致"绝不能读成"方法正确/严格完成"。承重台账之外，每个模块必须再过三关（这三关正是数值复算的盲区，也是漏判高发区）：
+
+1. **理由核实（reason-truthing）**：每一个 `not_run / not_assessable / not_testable / no_X_available / missing_X / _absent / blocked / skipped / fallback / deferred` 都是**待验证的 claim，不是事实**。逐个回到独立源头验 blocker 真伪——例：声称"缺 subject_id"→ 去 grep 源表确认该数据集是否真缺该列；声称"包缺失"→ 确认是否真的是独立包而非在错命名空间找函数。**理由对某数据集/场景根本不成立 = P1**，并要求改正错误标注。（把"不采信自报数字"扩展成"不采信自报的借口"。）
+2. **raw-保真优于自洽（fidelity over self-consistency）**：门控/映射必须回溯 **RAW 源字段**，**不接受同源派生量自证**（`record_count == sample_count` 是同义反复、不是 metadata_match_rate）。受控词表列（site/age/disease/tissue…）做 **raw→mapped 列联** + 报"raw 有值却 mapped=unknown/空"的**折进率**，抓静默坍缩（曾漏判：主队列 432 个 LeftColon/RightColon 样本被静默折进 `site=unknown`、`site_coverage` 隐去、未披露）。
+3. **fallback 三分类**：输出缺失/降级时必须分清「**试过失败**（有运行证据撞到真墙 = 诚实边界）/ **从没试**（primary 方法从未运行、静默换 proxy = 降级）/ **授权延期**（有 override 文档背书）」——只有"试过撞墙"才算诚实边界；"从没试"却包装成边界或图件缺失 = 降级，按 P2 起（曾漏判：graph pseudotime 全队列从未算，被当成"只差出图"）。
+
+**产出「方法保真表」**（spec 锚定、逐条**不抽样**）：把方案 mandated 的每个方法/子步列全，逐条判定：
+
+| 模块/子步 | 方案 mandated 方法 | 实际 method_status | 判定 | 证据(file:line) |
+|---|---|---|---|---|
+
+判定 ∈ `严格完成` / `诚实边界`(§12.2 允许) / `授权override`(有裁定背书) / **`未披露降级`**(P1/P2) / **`理由不实`**(P1)。任何后两类都要单独点名 + 给整改动作。
+
+可用确定性脚本机械兜底（别只靠肉眼）：`harness/quality/limitation_register.py`（抽全部 limitation 字符串逐个要证据）、`harness/quality/mapping_fidelity.py`（受控词表 raw→mapped 折进率）。
+
 ### 第七步：生成审计报告
 
 按以下结构输出审计报告：
@@ -106,6 +123,12 @@ tools: Read, Glob, Grep
 | claim | 位置 | 源数据(文件:列/单元格) | 复算值 | 一致? |
 |---|---|---|---|---|
 
+## 4B. 方法保真表 + 限制登记（复算之外——防"数字对但方法被偷换/理由不实"）
+| 模块/子步 | mandated 方法 | 实际 method_status | 判定 | 证据 |
+|---|---|---|---|---|
+判定 ∈ 严格完成 / 诚实边界 / 授权override / 未披露降级 / 理由不实；后两类必进 §5。
+**限制登记**：逐条列所有 not_run/not_assessable/missing_X + 其"blocker 是否经独立源头核实为真"。
+
 ## 5. 主要不足与风险 ⚠️
 [这是重点部分，直接列出发现的问题]
 1. **问题1**：[具体描述]
@@ -134,6 +157,7 @@ tools: Read, Glob, Grep
 ### 承重结论二次复核（防误报）
 - 承重结论先用**第二种独立方法**确认再下判断——单次读取/正则容易误报（曾因误判候选数删过对照行）。默认倾向"证伪"，证据确凿才确认。
 - 客观图表/文档项**跑确定性脚本**别肉眼估：图用 `~/.claude/skills/bio-fig-review/scripts/fig_check.py`，docx 用 `~/.claude/skills/bio-report/scripts/docx_check.py`。
+- 方法保真项也**跑确定性脚本**别只肉眼：`harness/quality/limitation_register.py`（每个 not_run/not_assessable 逐个要独立证据）、`harness/quality/mapping_fidelity.py`（受控词表 raw→mapped 折进率，抓静默坍缩与同义反复门控）。
 
 ### 禁止行为
 - ❌ 空洞的赞美（如："整体做得很好"，但没有具体依据）

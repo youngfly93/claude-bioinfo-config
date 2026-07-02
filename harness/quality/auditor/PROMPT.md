@@ -49,6 +49,13 @@
 - README 或说明文档齐全
 - 判定：AI 痕迹残留 = FAIL
 
+### 6. 方法保真 (method-fidelity)（复算/规范之外——防"数字对但方法被偷换/理由不实"）
+- 理由核实：每个 `not_run/not_assessable/no_X_available/missing_X/fallback/deferred` 都是待验证 claim，逐个到独立源头验 blocker 真伪；对某数据集根本不成立 = FALSE_REASON = FAIL(P1)
+- raw-保真 > 自洽：门控/映射回溯 RAW 源字段、拒同源派生量自证（`record_count==sample_count` 非 metadata_match_rate）；受控词表列查 raw→mapped 折进率
+- fallback 三分类：缺失/降级分 试过失败(诚实边界) / 从没试(未披露降级) / 授权延期——只有"试过撞墙"证据才算边界
+- 机械兜底：`harness/quality/limitation_register.py`、`harness/quality/mapping_fidelity.py`
+- 判定：未披露降级 或 理由不实 = FAIL
+
 ## 输出格式
 
 **必须**输出 JSON，严格遵循 `harness/quality/audit_schema.json`。
@@ -66,6 +73,7 @@
 2. 不确定的维度标 WARN，不标 PASS
 3. 需要人工判断的生物学问题 → overall = "HALT" + halt_reason
 4. 每轮审计结果写入 execution_log.md（如存在）
+5. **复算一致 ≠ 方法正确**：数字复算只证非造假；被偷换/跳过的方法照样吐可复现真数字。每个 mandated 方法另判 FAITHFUL / HONEST_BOUNDARY / UNDISCLOSED_DOWNGRADE / FALSE_REASON（见维度 6 + `docs/SHARED-AUDIT.md` §7）
 
 ---
 

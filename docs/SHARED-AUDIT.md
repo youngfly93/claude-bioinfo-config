@@ -65,3 +65,32 @@ python3 harness/lib/audit_reconcile.py <项目根>
 - 每个 module 的 `claude`/`codex` 两份是否审了**同一个 commit**——不同就**响亮报错**（这就是"不是一个事儿"被当场抓住）；
 - **覆盖缺口**：某 module 只有一边审了；
 - 按 `id` 并排两边 `verdict`，标出 ✅一致 / ⚠️分歧，让人只盯真正要裁的那几条。
+
+## 7. 方法保真 + 理由核实（复算证不了的那一层——两边都必做）
+
+> 加这节的由来：一轮 7 阶段复核里，数字全部零漂移、却仍漏判了"用假理由跳过 mandated 混合模型""主队列 432 样本被静默折进 unknown""graph pseudotime 从没跑却当图件缺"。根因——**数字复算只证"数字非造假"，证不了"方法对/严格完成"**：被偷换或跳过的方法会产出真实、可复现的数字，复算照样逐位对上。
+
+所以除源表复算外，两个 agent 都要对每个 mandated 方法多判一层，写进各自 `.md` 的**方法保真表**：
+
+| id | mandated 方法 | 实际 method_status | verdict | evidence |
+|---|---|---|---|---|
+| 04_scrna-07 | 4I-Tier3 `(1｜subject)` 混合模型 | `spearman_proxy_no_lme4_due_missing_subject_ids` | FALSE_REASON | stage4_..._mixed_models.tsv:2（该集实有 subject_id）|
+
+方法保真条目的 `verdict` 在 CONFIRMED/REFUTED/UNSURE 之外，用四态：
+- `FAITHFUL`（严格完成，方法=方案）
+- `HONEST_BOUNDARY`（§12.2 诚实数据边界，有"试过撞墙"证据）
+- `UNDISCLOSED_DOWNGRADE`（预注册方法被静默替换/跳过；P1/P2）
+- `FALSE_REASON`（跳过的理由对该场景根本不成立；P1）
+
+三条硬规则（漏判高发区，spec 锚定逐条、**不抽样**）：
+1. **理由核实**：每个 `not_run/not_assessable/no_X_available/missing_X/blocked/skipped/fallback/deferred` 都是**待验证 claim 非事实**——到独立源头验 blocker 真伪（称"缺 subject_id"→ grep 源表；称"包缺失"→ 确认是否独立包而非找错命名空间）。对某数据集根本不成立 = `FALSE_REASON`/P1。
+2. **raw-保真 > 自洽**：门控/映射必须回溯 **RAW 源字段**，拒**同源派生量自证**（`record_count==sample_count` 是同义反复、非 `metadata_match_rate`）；受控词表列（site/age/disease）查 **raw→mapped 折进率**抓静默坍缩。
+3. **fallback 三分类**：缺失/降级分「**试过失败**(HONEST_BOUNDARY)/**从没试**(UNDISCLOSED_DOWNGRADE)/**授权延期**」——只有"试过撞墙"证据才算诚实边界。
+4. **审移动靶要锁文件版本 + 别把"并发修复"误当"测量假象"**：审计一个**正在被 producer 主动修**的项目时，你的"前"测量与"后"测量可能落在**不同文件版本**上。**真实踩过（且连错两步）**：对抗式 agent 报 `site=unknown 661`（真缺陷）→ 我隔一段时间用另一方法得 `unknown=0` → 我误判成"朴素解析假象"、**撤回了这个真 finding**；实则 producer 在两次测量之间重生成了该文件、把 unknown 正确映射了（`master` mtime 变了、缺陷是被**修好**不是"从没存在"）。铁律：① 每次承重测量**记下文件 mtime/hash**，跨测量出现差异**先排除"文件被改/被修"再归因**，别默认是自己解析错、也别默认 finding 是假的；② 用第二种方法复核 finding 时确保**同一文件版本**（否则不是复核、是对比两个版本）；③ finding 与其 fix 都 pin 版本——移动靶上"消失的缺陷"要先分清是"被修好"还是"没测到"。
+   （附：带引号/内嵌 JSON 的 TSV 复算仍**建议 `csv.reader`/pandas 而非裸 `split`/awk**、归一化比较用 `re.sub(r'[^a-z0-9]','',v.lower())`——好习惯；但**本例 awk 无辜**，版本错位别甩锅给解析。）
+
+机器兜底（别只肉眼）：
+```
+python3 harness/quality/limitation_register.py <项目根>   # 抽全部 limitation 字符串，逐个要独立证据
+python3 harness/quality/mapping_fidelity.py <tsv> --col site --raw-json-key regionre   # raw→mapped 折进率
+```
