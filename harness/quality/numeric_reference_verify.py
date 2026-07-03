@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """numeric_reference_verify.py — 读 numeric_reference.tsv，从源表**真重算**每个承重数字并逐位 diff。
 
-补 `numeric_claims_check.py` 的缺口：那个只检查 source_file/column **填没填**，不真算。
+分工：`report_claims_check` 管 report_claims.tsv（字段完整 + 值在源列，"填没填/在不在"）；
+本脚本管独立的 numeric_reference.tsv 台账——从源表**真重算**每个数字并逐位 diff（"算得对不对"）。
 本脚本让任何会话（有没有记忆都行）对**同一冻结快照**跑同一套 recompute，得同一份结论——
 把"两个 LLM 主观读同一堆文件"变成"同一脚本对同一快照"，divergence 从掷骰子变成可定位事件。
 

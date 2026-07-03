@@ -42,13 +42,14 @@
 │   ├─ bio-result-auditor      只读审计代理
 │   └─ bio-report-writer  ⚡固定 Opus 4.6  出报告（主会话模型不受影响）
 │
-└─ ③ Skill 层  —— 触发才生效（bio-* 家族，12 个）
+└─ ③ Skill 层  —— 触发才生效（bio-* 家族，15 个）
    ├─ 开工      bio-project-init · bio-grill〔接文献检索〕
    ├─ 理解/调试 bio-zoom-out · bio-diagnose
    ├─ 审计/修复 bio-result-audit · bio-fig-review(⚙) · bio-audit-fix
    ├─ 报告      bio-report(⚙)
-   ├─ 交付      bio-deliver(⚙ · 总入口)
+   ├─ 交付      bio-deliver(⚙ · 总入口) · bio-goal〔goal loop〕
    ├─ 汇报      bio-ppt(⚙)
+   ├─ 接续/整理 bio-handoff · bio-docs-tidy
    └─ 其它      bio-ai-clean · bio-roundtable〔接文献检索〕
        ⚙ = 确定性脚本（docx_check / fig_check / zip_pack / ai_trace_scan / build_deck）
        ⚡ = 子代理钉死模型
@@ -63,7 +64,7 @@
 | `hooks/` | Bash/写入预检钩子：bash3 语法 · 中文写文件 · 非正本目录守护 · 不可逆 git 操作减速带 等 |
 | `docs/` | 设计文档：goal-loop 原理 · 跨机配置(SETUP) · 工作区政策模板 · 写 skill 的尺子(WRITING-SKILLS) · 双 agent 审计标准(SHARED-AUDIT) |
 | `assets/figure-style/nature_theme.R` | 统一绘图样式真源：ggplot 主题 + 语义配色 + ComplexHeatmap 热图 + CJK 安全字体自动解析 |
-| `skills/bio-*` | 12 个自定义 skill，串成 开工→出图→审计→报告→交付 流水线；并接 nature-* 发表链 |
+| `skills/bio-*` | 15 个自定义 skill，串成 开工→出图→审计→报告→交付 流水线；并接 nature-* 发表链 |
 | `commands/` | 自定义 slash 命令 |
 | `agents/` | 自定义子代理：`bio-result-auditor`（只读审计）、`bio-report-writer`（出报告，固定 Opus 4.6） |
 | `statusline-command.sh` | 状态栏脚本（git 分支 + 配额进度条） |
