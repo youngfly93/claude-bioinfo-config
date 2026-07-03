@@ -10,9 +10,12 @@ Claude Code PreToolUse hook：正本目录守护。
 import sys
 import json
 import re
+import os
 
 # 非正本/高风险目录特征（路径里出现即视为非正本）
-BAD = re.compile(r"(\.tmp|(^|/)_archive(/|$)|dup_extracts|build_intermediates|_v\d)")
+# 注：不含 _v\d——版本号交付目录（如 260627_01_result_v2.8）是正本、不是 .tmp/_archive 那类废弃物；
+# 多版本「文件名」的检测交给 COPY（且只查 basename），避免 result_v2.8/ 下每个文件都误触发。
+BAD = re.compile(r"(\.tmp|(^|/)_archive(/|$)|dup_extracts|build_intermediates)")
 # "又复制了一份 / 新版本"的文件名特征（只对新建文件名判定，防多版本 md 堆叠）
 COPY = re.compile(
     r"副本|备份|_v\d|_final\b|_最终|_定稿|"
@@ -32,7 +35,7 @@ def main():
     tool = data.get("tool_name", "")
     ti = data.get("tool_input", {})
 
-    DIR_MSG = ("⚠️ 目标在「非正本目录」（.tmp* / 旧版本 _v* / _archive / 副本）。"
+    DIR_MSG = ("⚠️ 目标在「非正本目录」（.tmp* / _archive / dup_extracts / build_intermediates）。"
                "确认这是不是你要改/删的正本——别在临时或旧版本目录里改正事、删数据前先看清内容"
                "（交付纪律：只在正本目录改）。确实要继续就批准。")
     COPY_MSG = ("⚠️ 这个文件名像「又复制一份 / 新版本」（副本 / copy / (2) / _v* / _final / _new 等）。"
@@ -44,7 +47,7 @@ def main():
         path = ti.get("file_path") or ti.get("notebook_path") or ""
         if BAD.search(path):
             reason = DIR_MSG
-        elif COPY.search(path):          # 只对新建/写入的文件名判多版本，精准、无 Bash 误伤
+        elif COPY.search(os.path.basename(path)):  # 只看文件名本身、不看父目录 → result_v2.8/report.docx 放行，report_v2.md 仍拦
             reason = COPY_MSG
     elif tool == "Bash":
         cmd = ti.get("command", "")
