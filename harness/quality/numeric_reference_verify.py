@@ -187,6 +187,13 @@ def build_issues(root: Path, ref: str) -> list:
     return issues
 
 
+def run(root: Path) -> list:
+    """validate.py 接口。缺 numeric_reference.tsv 时静默返回——该提示由 numeric_claims_check 负责，避免双重告警。"""
+    if not (root / "numeric_reference.tsv").exists():
+        return []
+    return build_issues(root, "numeric_reference.tsv")
+
+
 def _selftest() -> int:
     import tempfile
     with tempfile.TemporaryDirectory() as td:

@@ -36,7 +36,10 @@ GENERAL_TOKENS = [
 ]
 ASSERTION_TOKENS = [  # 断言"某数据/字段/工具缺失"——最该被 reason-truthing 的一类
     "missing_subject", "missing_", "no_subject", "no_coordinate", "no_raw",
-    "_absent", "due_missing", "due_to_missing", "not_available", "no_", "unavailable",
+    "_absent", "due_missing", "due_to_missing", "not_available", "unavailable",
+    # 别放裸 "no_"：会撞生信术语 Adeno_(腺病毒)/mono_/geno_/techno_ 等——真踩过：primer 项目 20/20
+    # 全是 "Adeno_B" 误报（见 0f5db6c「关键词别撞生信术语」的同类教训）。要匹配"缺某物"用上面
+    # 具体的 no_subject/no_coordinate/no_raw，或 GENERAL_TOKENS 里的 no_lme4/proxy_no_。
 ]
 # 证据指针的迹象：邻近有这些 → 认为该 limitation 至少附了可核实的线索
 EVIDENCE_HINTS = re.compile(
@@ -158,6 +161,11 @@ def build_issues(root: Path, present_col: str = "", present_in: str = "") -> lis
     return issues
 
 
+def run(root: Path) -> list:
+    """validate.py 接口：默认只扫描登记（P2 advisory）；机械反证 --present-col/--in 仍走 CLI 按需触发。"""
+    return build_issues(root)
+
+
 def _selftest() -> int:
     import tempfile
     ok = True
@@ -185,6 +193,11 @@ def _selftest() -> int:
         # gf.tsv 那条 not_run 附了 sha256/probe → 不应进 no-evidence
         no_ev_paths = [i.path for i in issues if i.code == "LIMITATION_NO_EVIDENCE"]
         assert not any("gf.tsv" in p for p in no_ev_paths), "附证据的 limitation 不该报无证据"
+        # 域术语防撞（真踩过）：Adeno_B(腺病毒)含子串 "no_"，裸 no_ token 曾把它误当"断言式缺失"
+        (root / "results" / "vir.tsv").write_text(
+            "target\tcoverage\nAdeno_B_hexon_c6\t67.70%\nmono_culture\t0.9\n", encoding="utf-8")
+        vir_hits = [h for h in scan_register(root) if "vir.tsv" in h[0] and h[3]]
+        assert not vir_hits, f"域术语 Adeno_/mono_ 不该被当断言式缺失（no_ 撞术语）: {vir_hits}"
         print("selftest PASS:", codes)
     return 0 if ok else 1
 

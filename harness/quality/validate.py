@@ -16,7 +16,9 @@ CHECKS = [
     ("reference_lock", "reference_lock_check.py"),
     ("report_claims", "report_claims_check.py"),
     ("numeric_claims", "numeric_claims_check.py"),
+    ("numeric_reference", "numeric_reference_verify.py"),
     ("figure_spec", "figure_spec_check.py"),
+    ("limitation", "limitation_register.py"),
 ]
 
 
