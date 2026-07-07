@@ -20,6 +20,19 @@
 - 不新增 `bin/bio-harness` 之类统一 CLI，除非用户明确要求；现阶段直接调用 `harness/` 里的脚本。
 - 不为 Warp、Codex、Claude 分别维护一套规则。所有环境都必须落到同一套 harness 命令、`audit.json` 和 `proof.json`。
 
+## 生信项目结构契约（两个 agent 都遵循）
+
+> Codex 不自动加载 `skills/*/SKILL.md`（那是 Claude 的 adapter）。凡需**绑定两个 agent** 的项目级约定，都在这里指过去——单一真源仍是对应 SKILL.md，本节只点、不复制，避免漂移。
+
+新建或推进生信分析项目时，无论 Claude 还是 Codex 当 writer，都按 `skills/bio-project-init/SKILL.md` 的结构契约走：
+
+- **先分析、后绘图分阶段**：`scripts/analysis/`（产结果表）与 `scripts/figures/`（只读 `results/` 出图、零重算）分开；绘图缺数回分析阶段补进结果表，绝不在图脚本现算统计量。
+- **`results/<NN_step>/` 编号对齐**：脚本编号 ↔ 结果子目录一一对应，路径可预测。
+- **脚本头四行契约（强制）**：每个分析/绘图脚本顶部写 `# 步骤: / # 上游: / # 输出: / # 种子:`——这是审查方（只有 `Read/Glob/Grep`）重建步骤地图的审计面。
+- **清爽纪律**：`results/`+`figures/` 只留必要产物；可再生的中间物/诊断图进 `.work/`（可删）；`results/` 里无脚本 `# 输出:` 声明的文件 = 孤儿。
+
+审计（无论谁当 auditor）除 §7 方法保真外，按 `skills/bio-result-audit/SKILL.md` 的「2.5 步骤地图 + 清爽体检」核：grep 脚本头重建 步骤→脚本→输入→输出 链、验路径合理性、揪孤儿/多余中间文件、查绘图是否现算。两边审同一套，才不会"各审各的"。
+
 ## 多 agent 环境隔离
 
 Claude Code 与 Codex 可以在同一项目中分析、审核和验收，但运行态必须隔离：
