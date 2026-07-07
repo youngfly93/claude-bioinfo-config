@@ -26,9 +26,9 @@ SKILL_DIR="~/.codex/skills/bio-deliver"
 ### zip_pack.py
 
 ```bash
-# 打包
+# 打包（自动机械排除过程/中间文件，并列出被排除项）
 python3 ${SKILL_DIR}/scripts/zip_pack.py pack <delivery_dir> [项目名]
-# → {"zip_path": "..."}
+# → {"zip_path": "...", "excluded_count": N, "excluded": [被排除的过程/中间文件…]}
 
 # 验证
 python3 ${SKILL_DIR}/scripts/zip_pack.py verify <zip_path>
