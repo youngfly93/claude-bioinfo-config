@@ -6,16 +6,33 @@ import os
 import sys
 import datetime
 import hashlib
+import fnmatch
 
-EXCLUDE = {'.DS_Store', '__MACOSX', '.git', '.Rhistory', '.RData', 'Thumbs.db',
-           '.bio_harness', 'proof.json', 'goal_proof.md'}  # 末三项=harness QA 内部产物,绝不发客户
+# 精确名（目录或文件）——绝不进客户包。对齐 SKILL.md「过程记录不进交付包」，
+# 从"嘴上说"升级为机械强制：无论收集的 agent 是否手工挑干净，这些都进不了 ZIP。
+EXCLUDE = {
+    # 系统/VCS/R 运行态
+    '.DS_Store', '__MACOSX', '.git', '.Rhistory', '.RData', 'Thumbs.db', '__pycache__',
+    # harness QA 内部产物（proof 含 harness 路径，绝不发客户）
+    '.bio_harness', 'proof.json', 'goal_proof.md',
+    # 过程记录 / 审计 / 内部台账 / 草稿区（内部真源，不发客户）
+    'audit', '.work', '_archive',
+    'HANDOFF.md', 'DOCS_INDEX.md', 'execution_log.md', 'fix_log.md',
+    'delivery_manifest.tsv', 'delivery_md5.txt',
+}
+# 按后缀拦的中间/日志文件（fnmatch 匹配 basename）
+EXCLUDE_PATTERNS = ('*.log', '*.rds', '*.RData', '*.pyc', '*.tmp')
 
 def should_exclude(path: str) -> bool:
     parts = path.split(os.sep)
-    return any(p in EXCLUDE for p in parts)
+    if any(p in EXCLUDE for p in parts):
+        return True
+    base = parts[-1]
+    return any(fnmatch.fnmatch(base, pat) for pat in EXCLUDE_PATTERNS)
 
-def pack(delivery_dir: str, project_name: str = "项目") -> str:
-    """打包为 Windows 兼容 ZIP；解压即得**单一干净根目录**（项目名_交付_DATE/，不带 delivery 外壳）。"""
+def pack(delivery_dir: str, project_name: str = "项目"):
+    """打包为 Windows 兼容 ZIP；解压即得**单一干净根目录**（项目名_交付_DATE/，不带 delivery 外壳）。
+    返回 (zip_path, excluded)：excluded 为被机械排除的过程/中间文件相对路径列表（透明、不静默丢）。"""
     delivery_dir = os.path.abspath(delivery_dir)
     date_str = datetime.datetime.now().strftime("%Y%m%d")
     zip_name = f"{project_name}_交付_{date_str}.zip"
@@ -32,16 +49,20 @@ def pack(delivery_dir: str, project_name: str = "项目") -> str:
     else:
         src, root_name = delivery_dir, zip_name[:-4]  # 合成根 = 项目名_交付_DATE
 
+    excluded = []
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED, allowZip64=True) as zf:
         for root, dirs, files in os.walk(src):
             dirs[:] = [d for d in dirs if d not in EXCLUDE]
             for f in files:
                 full = os.path.join(root, f)
-                arcname = os.path.join(root_name, os.path.relpath(full, src))
-                if not should_exclude(arcname):
-                    zf.write(full, arcname)
+                rel = os.path.relpath(full, src)
+                arcname = os.path.join(root_name, rel)
+                if should_exclude(arcname):
+                    excluded.append(rel)
+                    continue
+                zf.write(full, arcname)
 
-    return zip_path
+    return zip_path, sorted(excluded)
 
 def verify(zip_path: str) -> dict:
     """验证 ZIP 完整性，返回结果字典。"""
@@ -76,8 +97,10 @@ if __name__ == "__main__":
     import json
     cmd = sys.argv[1] if len(sys.argv) > 1 else "help"
     if cmd == "pack":
-        path = pack(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else "项目")
-        print(json.dumps({"zip_path": path}))
+        path, excluded = pack(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else "项目")
+        print(json.dumps({"zip_path": path,
+                          "excluded_count": len(excluded),
+                          "excluded": excluded}, ensure_ascii=False))
     elif cmd == "verify":
         result = verify(sys.argv[2])
         print(json.dumps(result, ensure_ascii=False))

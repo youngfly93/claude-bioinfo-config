@@ -5,7 +5,7 @@
 severity:
 - P1（默认即拦,exit 1）：放错位置——图/ 里混进表、表/ 里混进图、根本没有报告。
 - P2（建议,--strict 才拦）：无 01_分析报告/、主题夹没分 图/表、根目录有散文件。
-- P3：缺溯源表/导航、编号跳号。
+- P3：缺溯源表、编号跳号。
 设计上对"小项目/非标准布局"宽容(只软提示)，只在明确摆错时硬拦。
 """
 import os, sys, json
@@ -45,9 +45,10 @@ def run(root):
     if not has_report:
         add("P2", "NO_REPORT", "未见分析报告（建议放 01_分析报告/）")
 
-    # 根目录散文件（除 00_* 导航/说明、溯源表）
+    # 根目录散文件（放行：根 README、00_* 说明、溯源表；其余散文件建议归夹）
     for f in files:
-        if not (f.startswith("00_") or "溯源" in f):
+        low = f.lower()
+        if not (low.startswith("readme") or f.startswith("00_") or "溯源" in f):
             add("P2", "STRAY_ROOT_FILE", f"根目录散落文件，建议归入主题/报告/代码夹：{f}", f)
 
     # 主题夹：图/表 分离 + 内容放对位置
@@ -71,11 +72,9 @@ def run(root):
                 if bad:
                     add("P1", "TABLE_DIR_HAS_IMG", f"「表/」里混进了图（{d}/{s}）：{bad[:3]}", f"{d}/{s}")
 
-    # 溯源表 / 导航
+    # 溯源表（可选保留；单一根 README 已承担导航，不再要求 00_目录导航.md）
     if not any("溯源" in e for e in entries):
-        add("P3", "NO_TRACE_TABLE", "未见溯源表（建议 NN_溯源表.xlsx）")
-    if "00_目录导航.md" not in files:
-        add("P3", "NO_INDEX", "未见 00_目录导航.md（用 make_index.py 生成）")
+        add("P3", "NO_TRACE_TABLE", "未见溯源表（建议 溯源表.xlsx）")
 
     # 编号跳号
     nums = sorted({int(d[:2]) for d in dirs if d[:2].isdigit()})
