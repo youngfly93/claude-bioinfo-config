@@ -20,8 +20,8 @@ EXCLUDE = {
     'HANDOFF.md', 'DOCS_INDEX.md', 'execution_log.md', 'fix_log.md',
     'delivery_manifest.tsv', 'delivery_md5.txt',
 }
-# 按后缀拦的中间/日志文件（fnmatch 匹配 basename）
-EXCLUDE_PATTERNS = ('*.log', '*.rds', '*.RData', '*.pyc', '*.tmp')
+# 按 basename 模式拦的中间/日志/系统垃圾（fnmatch）——含 macOS AppleDouble `._*` 与 Excel 锁 `~$*`
+EXCLUDE_PATTERNS = ('*.log', '*.rds', '*.RData', '*.pyc', '*.tmp', '._*', '~$*')
 
 def should_exclude(path: str) -> bool:
     parts = path.split(os.sep)
