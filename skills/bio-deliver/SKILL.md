@@ -58,16 +58,15 @@ python3 ${SKILL_DIR}/scripts/ai_trace_scan.py clean <directory>
 
 ### 边界（CONSTRAINT）
 
-- 步骤 1→8 顺序执行，不可跳步；按需项没有适用文件时标记为“不适用”
+- 步骤 1→8 顺序执行（含 3.0 蓝图 / 3.5 校验 等子步），不可跳步；按需项没有适用文件时标记为“不适用”
 - 步骤 1 有 P0/P1 问题 → 中止打包，建议先执行审计修复流程
 - ZIP 打包和 AI 扫描必须调用上方 Tool Facet 脚本，不可内联重写
-- 排除文件：.DS_Store, __MACOSX, .git, .Rhistory, .RData, Thumbs.db
-- **过程记录不进交付包（已机械强制）**：`HANDOFF.md`、`DOCS_INDEX.md`、`execution_log.md`、`fix_log.md`、`audit/`、`.work/`、`_archive/`、`proof.json`、`goal_proof.md`、`.bio_harness/`、`*.log`、`*.rds`/`*.RData` 等——`zip_pack.py` 的 `EXCLUDE`/`EXCLUDE_PATTERNS` 打包时**机械排除并打印排除清单**，不再靠收集时手工挑。客户包只放正式报告/图/表/脚本（+可选溯源表）。多版本 `*_v*`/`*_final` 草稿由 `dedup_check.py` 把关；散落 md 太多先 `bio-docs-tidy` 收口。
+- **过程记录/中间文件不进交付包——两层保证，别再手工挑**：**判断层** = Step 3.0 打包蓝图逐项判"多余"；**机械层** = `zip_pack.py` 的 `EXCLUDE`/`EXCLUDE_PATTERNS` 打包时机械排除并打印清单（覆盖 `.DS_Store`/`__MACOSX`/`.git`/`.Rhistory`/`._*`/`~$*`/`*.log`/`*.rds`/`.RData`/`__pycache__`/`audit`/`.work`/`HANDOFF`/`execution_log`/`proof` 等）。客户包只放正式报告/图/表/脚本（+可选溯源表）。多版本 `*_v*`/`*_final` 由 `dedup_check.py` 把关；散落 md 太多先 `bio-docs-tidy` 收口。
 - **临床/敏感项目硬卡**：项目根放一个空文件 `.bio_clinical_mode` → 交付门 `delivery_gate` 强制 **strict**（缺 proof / 命令 exit≠0 / status 非 PASS 直接拦停 Stop，不只警告）。平时个人项目不放它=advisory 不卡手。
 - 必须有 plan.md 才能启动（无则停止，提醒先建立）
 - ZIP 文件名格式：`项目名_交付_YYYYMMDD.zip`
 - **版本纪律（防泛滥 + 防改错目录）**：只在一个正本目录构建交付物；出新版时把旧版归档到 `_archive/`，并用 `delivery_latest` 软链指向当前正本；绝不在 `.tmp*`、`xxx 2`/`xxx 3`、副本目录里改。每次只操作正本。
-- **抗崩溃**：Step 1 审计按模块落盘（见 `bio-result-audit`）；Step 3 收集边复制边把清单追加到 `delivery_manifest.tsv`。中途撞 token 上限/超时后可从 manifest 续传，不从头重来。
+- **抗崩溃**：Step 1 审计按模块落盘（见 `bio-result-audit`）；**Step 3.0 蓝图表即 `delivery_manifest.tsv` 初稿**，Step 3 收集时逐项打勾。中途撞 token 上限/超时后从 manifest 续传，不从头重来。
 
   #### 在此边界内追求（ASPIRATION）
 
