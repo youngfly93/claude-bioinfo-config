@@ -27,9 +27,16 @@ def project_root() -> Path:
 
 def main() -> int:
     # Drain stdin if Claude Code sends hook JSON; this script only needs cwd.
+    # Non-blocking: a Stop hook must return promptly. A bare/piped invocation whose
+    # writer never sends EOF would make an unconditional sys.stdin.read() hang forever
+    # (and stall the loop). select+os.read drains what's buffered and never blocks.
     try:
         if not sys.stdin.isatty():
-            _ = sys.stdin.read()
+            import select
+            fd = sys.stdin.fileno()
+            while select.select([fd], [], [], 0.0)[0]:
+                if not os.read(fd, 65536):
+                    break  # EOF
     except Exception:
         pass
 
