@@ -120,6 +120,8 @@ description: >-
 2. **raw-保真 > 自洽**：门控/映射回溯 **RAW 源字段**，拒同源派生量自证（`record_count==sample_count` 是同义反复非 metadata_match_rate）；受控词表列（site/age/disease）查 **raw→mapped 折进率**抓静默坍缩。
 3. **fallback 三分类**：缺失/降级分「**试过失败**(诚实边界)/**从没试**(静默降级)/**授权延期**」——只有"试过撞墙"证据才算诚实边界；"从没试"包装成边界或图件缺失 = 降级(P2 起)。
 
+> **fitness-for-purpose（另一条轴，独立于上面的"诚实度"）**：上面三关判"诚实/方法对不对"，但**诚实边界照样能产出下游不可用的交付物**。所以每个降级再问一层：**它是否破坏下游可用性？**（例：scRNA 因缺包未做 doublet/未聚类 → 注释与 signature 取自 pre-QC raw、不可信、不能进下游；批次未校正 → 差异不可信）。**破坏下游 fitness 的，无关是否如实披露，一律升 P1/阻塞**——别因"诚实边界"就当 P3 放行。`present`（在不在）≠ `fit`（够不够进下游），交付物核对两个都要答。
+
 机械兜底别只肉眼：`${CLAUDE_PLUGIN_ROOT:-$HOME/.claude}/harness/quality/limitation_register.py .`（逐个 limitation 要独立证据）、`.../mapping_fidelity.py`（受控词表 raw→mapped 折进率）。产出「方法保真表」：mandated 方法 → 实际 status → [严格/诚实边界/授权override/未披露降级/理由不实] + 证据（spec 锚定逐条、不抽样）。
 
 ## 输出格式

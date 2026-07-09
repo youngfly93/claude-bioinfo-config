@@ -92,6 +92,8 @@ tools: Read, Glob, Grep
 
 判定 ∈ `严格完成` / `诚实边界`(§12.2 允许) / `授权override`(有裁定背书) / **`未披露降级`**(P1/P2) / **`理由不实`**(P1)。任何后两类都要单独点名 + 给整改动作。
 
+**fitness-for-purpose（独立于诚实度必查）**：判定为 `诚实边界` **不等于可放行**——再问一层"这个降级是否破坏**下游可用性**"（如 scRNA 缺包未做 doublet/未聚类 → 注释/signature 取自 pre-QC raw 不可信、不能进下游；批次未校正 → 差异不可信）。**破坏下游 fitness 的，无关是否如实披露，升 P1/阻塞**，别因诚实就判 P3 放行。`present` ≠ `fit`：交付物核对既问"在不在"、也问"够不够进下游"。
+
 可用确定性脚本机械兜底（别只靠肉眼）：`harness/quality/limitation_register.py`（抽全部 limitation 字符串逐个要证据）、`harness/quality/mapping_fidelity.py`（受控词表 raw→mapped 折进率）。
 
 ### 第七步：生成审计报告

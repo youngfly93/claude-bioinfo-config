@@ -53,8 +53,9 @@
 - 理由核实：每个 `not_run/not_assessable/no_X_available/missing_X/fallback/deferred` 都是待验证 claim，逐个到独立源头验 blocker 真伪；对某数据集根本不成立 = FALSE_REASON = FAIL(P1)
 - raw-保真 > 自洽：门控/映射回溯 RAW 源字段、拒同源派生量自证（`record_count==sample_count` 非 metadata_match_rate）；受控词表列查 raw→mapped 折进率
 - fallback 三分类：缺失/降级分 试过失败(诚实边界) / 从没试(未披露降级) / 授权延期——只有"试过撞墙"证据才算边界
+- fitness-for-purpose（独立于诚实度）：诚实边界 ≠ 可放行——再问"降级是否破坏下游可用性"（scRNA 未做 doublet/未聚类→注释/signature 不可信；批次未校正→差异不可信）。破坏下游的无关是否披露，升 P1/阻塞。`present` ≠ `fit`
 - 机械兜底：`harness/quality/limitation_register.py`、`harness/quality/mapping_fidelity.py`
-- 判定：未披露降级 或 理由不实 = FAIL
+- 判定：未披露降级 或 理由不实 或 **破坏下游 fitness 的降级** = FAIL
 
 ## 输出格式
 
