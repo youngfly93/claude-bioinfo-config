@@ -23,6 +23,50 @@ def _find_handoff(start):
     return None
 
 
+def _newest_mtime(root, cap=3000):
+    """results/scripts/figures 里最新文件的 mtime（有界扫描、跳过垃圾/归档；失败或空返回 0）。
+    用于判 HANDOFF 是否过期——过期地图比没图更坑，故让"结果比地图新"这件事在开场可见。"""
+    newest = 0.0
+    seen = 0
+    skip = {".git", ".work", "_archive", "__pycache__", ".bio_harness"}
+    for sub in ("results", "scripts", "figures"):
+        d = os.path.join(root, sub)
+        if not os.path.isdir(d):
+            continue
+        for r, dirs, files in os.walk(d):
+            dirs[:] = [x for x in dirs if x not in skip]
+            for f in files:
+                if f.startswith("._") or f.startswith("~$"):
+                    continue
+                seen += 1
+                if seen > cap:
+                    return newest
+                try:
+                    mt = os.path.getmtime(os.path.join(r, f))
+                    if mt > newest:
+                        newest = mt
+                except OSError:
+                    pass
+    return newest
+
+
+def _commits_since(root, epoch):
+    """root 仓库里晚于 epoch(HANDOFF mtime) 的提交数；非 git 仓/失败返回 None。
+    比 mtime 更精准地说明"地图落后了多少"——git 是不会漂移的文件真相。"""
+    try:
+        import datetime
+        # +60s 缓冲：忽略"提交 HANDOFF 自己那次"及同刻提交（秒级粒度误报），只算之后真新增的
+        iso = datetime.datetime.fromtimestamp(epoch + 60).isoformat()
+        r = subprocess.run(["git", "-C", root, "rev-list", "--count",
+                            f"--since={iso}", "HEAD"],
+                           capture_output=True, text=True, timeout=3)
+        if r.returncode == 0 and r.stdout.strip().isdigit():
+            return int(r.stdout.strip())
+    except Exception:
+        pass
+    return None
+
+
 def main():
     cwd, source = ".", ""
     try:
@@ -74,21 +118,42 @@ def main():
     # 交接棒检测：项目根有 HANDOFF.md → 提示先续上（接手/审批前别凭残留 context 硬接）
     hp = _find_handoff(cwd)
     if hp:
-        goal = ""
+        goal, updated = "", ""
         try:
             with open(hp, encoding="utf-8") as f:
                 txt = f.read()
             m = re.search(r'##\s*现在在做什么\s*\n+\s*([^\n]+)', txt)
             if m:
                 goal = "：" + m.group(1).strip()[:80]
+            dm = re.search(r'\(更新[:：]\s*([^)）]+)[)）]', txt)
+            if dm:
+                updated = f"（更新 {dm.group(1).strip()}）"
+        except Exception:
+            pass
+        # 新鲜度：优先"HANDOFF 更新后的 git 提交数"(精准、不漂移)，无 git 时回退"结果文件更新"。
+        # 告警里直接指向 git——重入先核文件真相，别只信可能过期的手写快照。
+        stale = ""
+        try:
+            root = os.path.dirname(hp)
+            hmt = os.path.getmtime(hp)
+            n = _commits_since(root, hmt)
+            reason = ""
+            # 阈值 3：落后 1~2 个提交常是同阶段、不吵；≥3 才是"明显落后"值得核对（防错位）
+            if n is not None and n >= 3:
+                reason = f"之后已有 {n} 个 git 提交"
+            elif n is None and _newest_mtime(root) > hmt + 60:
+                reason = "results/scripts 有比它更新的文件"
+            if reason:
+                stale = (f"\n⚠ HANDOFF 可能过期（{reason}）——续接前先 `git log/status/diff` "
+                         "核对文件真相，别照过期地图动手（过期图比没图更坑）")
         except Exception:
             pass
         try:
             rel = os.path.relpath(hp, cwd) if cwd not in (".", None) else hp
         except Exception:
             rel = hp
-        ctx += (f"\n📌 检测到交接棒 {rel}{goal} → 接手/审批前先用 bio-handoff 续上"
-                "（读快照 + 复述确认再动手）")
+        ctx += (f"\n📌 检测到交接棒 {rel}{updated}{goal} → 接手/审批前先用 bio-handoff 续上"
+                "（读快照 + 复述确认再动手）" + stale)
 
     json.dump({"hookSpecificOutput": {"hookEventName": "SessionStart",
                                        "additionalContext": ctx}}, sys.stdout)
