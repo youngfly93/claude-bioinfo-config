@@ -67,6 +67,52 @@ def _commits_since(root, epoch):
     return None
 
 
+def _find_lock(start):
+    """从 cwd 向上找最多 3 层的 .bio_harness/.lock（多 agent 写锁，agent_lock.sh 所写）。"""
+    d = os.path.abspath(start or ".")
+    for _ in range(3):
+        p = os.path.join(d, ".bio_harness", ".lock")
+        if os.path.isfile(p):
+            return p
+        parent = os.path.dirname(d)
+        if parent == d:
+            break
+        d = parent
+    return None
+
+
+def _lock_note(cwd):
+    """浮出多 agent 写锁状态——别的 agent 持锁时提醒本会话先只读，防并发写同一棵树。
+    锁是咨询式(无 hook 强制、Codex 也无 hook)，故靠开场'点破'让状态可见、靠自觉遵守。"""
+    lp = _find_lock(cwd)
+    if not lp:
+        return ""
+    try:
+        import time as _t
+        agent, epoch = "?", 0
+        with open(lp, encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("agent="):
+                    agent = line[6:].strip()
+                elif line.startswith("epoch="):
+                    try:
+                        epoch = int(line[6:].strip())
+                    except ValueError:
+                        pass
+        ttl = int(os.environ.get("BIO_LOCK_TTL", "1800"))
+        age = (int(_t.time()) - epoch) if epoch else ttl + 1
+        mins = max(0, age // 60)
+        if age >= ttl:
+            return (f"\n🔓 写锁陈旧（{agent}，{mins} 分钟前，超 {ttl // 60}min）——"
+                    "可 `agent_lock.sh acquire <你> --force` 接管")
+        if agent.lower() == "claude":
+            return f"\n🔒 你(claude)已持写锁（{mins} 分钟前）——干完记得 release，别把锁留给下一会话"
+        return (f"\n⚠ 写锁被 **{agent}** 持有（{mins} 分钟前）——同一棵树本会话先**只读/审计**"
+                "（只写 audit/、发现问题只标记不顺手改），别并发写；要写先协调或等其 release")
+    except Exception:
+        return ""
+
+
 def main():
     cwd, source = ".", ""
     try:
@@ -154,6 +200,9 @@ def main():
             rel = hp
         ctx += (f"\n📌 检测到交接棒 {rel}{updated}{goal} → 接手/审批前先用 bio-handoff 续上"
                 "（读快照 + 复述确认再动手）" + stale)
+
+    # 多 agent 写锁：别的 agent 持锁 → 本会话先只读（防 Claude↔Codex 并发写撞车）
+    ctx += _lock_note(cwd)
 
     json.dump({"hookSpecificOutput": {"hookEventName": "SessionStart",
                                        "additionalContext": ctx}}, sys.stdout)
