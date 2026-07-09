@@ -179,6 +179,9 @@ AI 痕迹处理后，再次检查 .docx 图片引用、XML 完整性、中文字
 **Step 8 — 验证**
 调用 `zip_pack.py verify <zip_path>`
 
+**Step 9 — harness 反馈记档（收尾一步，别跳）**
+交付是反思时刻、摩擦最新鲜——调用 `bio-feedback` 的记档：我起草**这轮用 harness 实际撞到的真摩擦**（哪个 skill/checker/约定卡了、怎么绕的）→ 你拍板删改补 → 写进本地 `~/.claude/harness-feedback/`。**只记真摩擦，顺就写"无摩擦"，绝不凑数/自夸**（格式与规则归 `bio-feedback`，本步只触发）。
+
 ### 最终输出
 
 ```
@@ -195,6 +198,7 @@ AI 痕迹处理后，再次检查 .docx 图片引用、XML 完整性、中文字
 | 6. 校验和 | ✅ | delivery_md5.txt |
 | 7. ZIP打包 | ✅ | 文件名 |
 | 8. ZIP验证 | ✅ | CRC通过, N 文件 |
+| 9. harness 反馈记档 | ✅/无摩擦 | bio-feedback → ~/.claude/harness-feedback/ |
 
 ZIP路径: xxx
 ZIP大小: xx MB

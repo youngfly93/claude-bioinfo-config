@@ -23,6 +23,18 @@ def now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _harness_version() -> str:
+    """记真正用的是哪版 harness——每条交付/反馈能对到具体 commit（配 bio-feedback 复盘）。
+    装成插件(非 git 仓)时回退静态串。"""
+    try:
+        c = git_commit(Path(__file__).resolve().parents[2])  # harness 仓根
+        if c:
+            return f"bio-harness@{c[:10]}"
+    except Exception:
+        pass
+    return "bio-harness.v1"
+
+
 def proof_paths(root: Path) -> tuple[Path, Path]:
     d = root / "delivery"
     d.mkdir(exist_ok=True)
@@ -42,7 +54,7 @@ def load(root: Path) -> dict:
         "git_commit": git_commit(root),
         "plan_path": str(plan.relative_to(root)) if plan else None,
         "plan_sha256": sha256_file(plan) if plan and plan.exists() else None,
-        "harness_version": "bio-harness.v1",
+        "harness_version": _harness_version(),
         "status": "IN_PROGRESS",
         "commands": [],
         "artifacts": [],
