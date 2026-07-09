@@ -92,7 +92,7 @@ tools: Read, Glob, Grep
 
 判定 ∈ `严格完成` / `诚实边界`(§12.2 允许) / `授权override`(有裁定背书) / **`未披露降级`**(P1/P2) / **`理由不实`**(P1)。任何后两类都要单独点名 + 给整改动作。
 
-**fitness-for-purpose（独立于诚实度必查）**：判定为 `诚实边界` **不等于可放行**——再问一层"这个降级是否破坏**下游可用性**"（如 scRNA 缺包未做 doublet/未聚类 → 注释/signature 取自 pre-QC raw 不可信；批次**与生物学混杂且未建模** → 差异不可信。注：batch 不混杂或作协变量建模时**不校正是对的**，别误判）。**破坏下游 fitness 的，无关是否如实披露，升 P1**；**是否阻塞看它是否本阶段/下游准入必需件**——必需件缺陷阻塞该阶段放行，非关键路径的不合格件不阻塞全交付、但须标不可用、不得当合格件放行。别因诚实就判 P3 放行。`present` ≠ `fit`。
+**fitness-for-purpose（独立于诚实度必查）**：判定为 `诚实边界` **不等于可放行**——再问"这个降级是否破坏**下游可用性**"。**判据锚 plan/spec、非主观**：`fit` = 满足 `plan/spec` 为它声明的下游用途；plan 没要求的标准**别拿来判 unfit**（防假阳），fitness 判定给证据(file:line) + 指向 plan 用途。（如 scRNA 缺包未做 doublet/未聚类 → 注释/signature 取自 pre-QC raw 不可信、进不了 plan 声明的单细胞准入；批次**与生物学混杂且未建模** → 差异不可信；batch 不混杂 / 作协变量 / plan 没要求去批次时**不校正是对的**，别误判）。**破坏下游 fitness 的升 P1**；**是否阻塞看它是否 plan/spec 声明的本阶段/下游准入必需件**——必需件缺陷阻塞该阶段放行，非关键路径的不合格件不阻塞全交付、但须标不可用、不得当合格件放行。别因诚实就判 P3 放行。`present` ≠ `fit`。
 
 可用确定性脚本机械兜底（别只靠肉眼）：`harness/quality/limitation_register.py`（抽全部 limitation 字符串逐个要证据）、`harness/quality/mapping_fidelity.py`（受控词表 raw→mapped 折进率）。
 

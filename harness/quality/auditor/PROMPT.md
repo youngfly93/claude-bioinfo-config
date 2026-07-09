@@ -53,7 +53,7 @@
 - 理由核实：每个 `not_run/not_assessable/no_X_available/missing_X/fallback/deferred` 都是待验证 claim，逐个到独立源头验 blocker 真伪；对某数据集根本不成立 = FALSE_REASON = FAIL(P1)
 - raw-保真 > 自洽：门控/映射回溯 RAW 源字段、拒同源派生量自证（`record_count==sample_count` 非 metadata_match_rate）；受控词表列查 raw→mapped 折进率
 - fallback 三分类：缺失/降级分 试过失败(诚实边界) / 从没试(未披露降级) / 授权延期——只有"试过撞墙"证据才算边界
-- fitness-for-purpose（独立于诚实度）：诚实边界 ≠ 可放行——再问"降级是否破坏下游可用性"（scRNA 未做 doublet/未聚类→注释/signature 不可信；批次**与生物学混杂且未建模**→差异不可信；batch 不混杂/作协变量则不校正是对的、别误判）。破坏下游的无关是否披露升 P1；阻塞看是否本阶段/下游准入必需件。`present` ≠ `fit`
+- fitness-for-purpose（独立于诚实度，锚 plan/spec 非主观）：诚实边界 ≠ 可放行——`fit` = 满足 plan/spec 声明的下游用途，plan 没要求的标准别判 unfit（防假阳），判定给证据+指向 plan 用途。例：scRNA 未做 doublet/未聚类→注释/signature 不可信；批次**与生物学混杂且未建模**→差异不可信（不混杂/作协变量/plan 没要求去批次则不校正是对的、别误判）。破坏下游的无关是否披露升 P1；阻塞看是否 plan/spec 声明的准入必需件。`present` ≠ `fit`
 - 机械兜底：`harness/quality/limitation_register.py`、`harness/quality/mapping_fidelity.py`
 - 判定：未披露降级 或 理由不实 或 **准入必需件的下游 fitness 破坏** = FAIL（非必需件的 fitness 破坏 → 标注不可用、不当合格件放行，不必 FAIL 全交付）
 
