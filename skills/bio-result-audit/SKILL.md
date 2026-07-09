@@ -27,13 +27,16 @@ description: >-
 推荐 subagent 任务提示：
 
 ```text
+> ⚠️ **总方向：spec 主轴驱动、逐条过、方向 spec→证据（不是 结果→对计划）。** 扫结果对计划是结果驱动，对"存在的东西"有偏——静默降级/缺失项要么产出看着合理的文件、要么没文件，扫描一律滑过去。所以**先取一条固定主轴、对每条 spec 强制找证据**，结果扫描降为"为逐条找证据"服务。这同时消除"查什么靠临场发挥"的方差（同一主轴 → 两次审计必收敛）。**完整口径以 `agents/bio-result-auditor.md` 为 canonical，本 SKILL 是其摘要版，冲突以 agent 为准。**
+> ⚖️ **深度随风险分级（承 `bio-grill`）**：有受控词表列/registry/gate/多阶段/临床 → 五反射逐条狠盘；纯探索/简单交付（单 contrast 两组 DEG）→ 轻量（完整性+数字对账+基本合理性+fitness），五反射按 presence-gate 自然触发、不硬凑逐条。**分级按客观 presence 触发、不给"感觉简单"当降级借口**（详见 canonical）。
+
 按 bio-result-audit 的规则，对当前生信项目做只读审计：
-1. 读取 plan.md，提取计划任务、数据类型、分组/contrast、阈值、交付物和参考版本。
-2. 扫描 results/ figures/ reports/ notebooks/ output/ analysis/ 和编号目录。
+1. **建立审计主轴**：优先取项目已有 spec/gate 契约（`audit/验收spec_gate契约.md`、`spec.md`、per-stage gate 表）作逐条清单；无则从 plan.md 现场蒸馏成**原子条目**。**粒度下压铁律**：受控词表列（site/age/disease/tissue…）、registry/schema/示例结构表要压到**列级**，别停在"§X 要做 site 分层"一条打钩。
+2. **沿主轴逐条取证**：对每条（不抽样、不跳）去 results/ figures/ reports/ output/ 编号目录找证据；**无产物 = ❌/降级，不是跳过**（缺失项是静默降级藏身处）。
 3. 追溯关键结果到脚本、notebook、pipeline、日志或配置。
-4. 检查完整性、数据准确性、分析准确性、方法合理性、图表-数据一致性和参考基因组/注释版本。
+4. 主轴逐条落判定（已完成/部分/未见），**每条叠 6B 五反射**；逐条过完再补一遍 off-spec 方法合理性兜底（抓主轴没预见的问题）。
 5. 对承重的数字和结论做针对性复算与数字台账（见工作流第 6 步）。
-5b. 方法保真三反射（见工作流 6B）：每个 not_run/not_assessable/missing_X 逐个核实 blocker 真伪（理由不实=P1）；受控词表列查 raw→mapped 折进率；fallback 分「试过失败/从没试/授权延期」。产出方法保真表。
+5b. 方法保真五反射（见工作流 6B）：①逐个核实 not_run/missing_X 的 blocker 真伪（理由不实=P1）②受控词表列查 raw→mapped 折进率（**强制、缺表=审计不合格**）③fallback 分「试过失败/从没试/授权延期」④registry/schema 列逐列核 present（辨示例值≠强制列）⑤gate 自报计数回 manifest 重算。产出方法保真表 + raw→mapped 折进表。
 6. 输出结构化审计报告，按 P0/P1/P2/P3 排序问题。
 7. 把每步完整发现实时写进 `audit/<module>.claude.md`（module 用 plan.md 任务名逐字、头记 audited_commit），只向主线程回一行状态摘要（防撞输出上限/超时丢进度，便于只补跑缺失模块）。
 
@@ -112,17 +115,19 @@ description: >-
 
 任一不一致 → 记 P0/P1，在审计报告里单独点名。
 
-### 6B. 方法保真三反射（复算之外必做——复算只证"数字非造假"，证不了"方法对"）
+### 6B. 方法保真五反射（复算之外必做——复算只证"数字非造假"，证不了"方法对/无简化"）
 
-⚠️ 被偷换/跳过的方法会产出**真实、可复现**的数字，复算照样逐位对上。故每模块在数字台账之外再过三关（数值复算的盲区、漏判高发区）：
+⚠️ 被偷换/跳过的方法会产出**真实、可复现**的数字，复算照样逐位对上。故每模块在数字台账之外再过五关（数值复算的盲区、漏判高发区），**每关沿主轴逐条施加、不抽样**：
 
 1. **理由核实（reason-truthing）**：每个 `not_run/not_assessable/not_testable/no_X_available/missing_X/blocked/skipped/fallback/deferred` 都是**待验证 claim 非事实**，逐个到独立源头验 blocker 真伪（例：称"缺 subject_id"→ grep 源表确认该数据集真缺该列；称"包缺失"→ 确认是否独立包而非找错命名空间）。理由对某场景根本不成立 = P1，且改正错误标注。
-2. **raw-保真 > 自洽**：门控/映射回溯 **RAW 源字段**，拒同源派生量自证（`record_count==sample_count` 是同义反复非 metadata_match_rate）；受控词表列（site/age/disease）查 **raw→mapped 折进率**抓静默坍缩。
+2. **raw-保真 > 自洽 · 强制步非可选**：门控/映射回溯 **RAW 源字段**，拒同源派生量自证（`record_count==sample_count` 是同义反复非 metadata_match_rate）。**凡有受控词表列（site/age/disease/tissue/inflammation…）的 stage，报告必须含 raw→mapped 列联表 + "raw 有值却 mapped=unknown/空"折进率——缺表=审计不合格**；跑 `mapping_fidelity.py` 是强制动作。**并追折进样本是否流入下游承重矩阵**（曾两次漏同一失败类：432 LeftColon 折进 site=unknown；722 行 raw_tissue="Ileal biopsy" 折进 site=unknown、626 行进 headline HK meta 输入）。
 3. **fallback 三分类**：缺失/降级分「**试过失败**(诚实边界)/**从没试**(静默降级)/**授权延期**」——只有"试过撞墙"证据才算诚实边界；"从没试"包装成边界或图件缺失 = 降级(P2 起)。
+4. **spec-列完整性**：plan/spec 的 registry/schema/「示例结构」表，**列清单逐列核 present**，缺 mandated 列 = 未披露降级(P1/P2)。**辨示例值≠强制列**：标"示例结构"的表列(结构)强制、值(如 min_n=30/50/50)示意，别把示例值当阈值扣"降级"帽。
+5. **gate 自报回源重算**：`gate_verdict/*_verdict.md/status 摘要` 里每个自报计数(grammar/pass/N/图数/hits) **必须回 manifest/结果表重算比对**，不采信 gate 正文（"不采信自报"扩展到 gate 文本）。
 
 > **fitness-for-purpose（另一条轴，独立于上面的"诚实度"）**：上面三关判"诚实/方法对不对"，但**诚实边界照样能产出下游不可用的交付物**。所以每个降级再问一层：**它是否破坏下游可用性？** **判据锚 `plan/spec`，不是审计员主观**：`fit` = 满足 `plan/spec` **为它声明的那个下游用途**；plan 没要求的标准**不能**拿来判 unfit（否则 fitness 变成新假阳面）；fitness 判定同样要**给证据(file:line) + 指向 plan 声明的用途**（否则它就是这套"证据优先"体系里的主观孤岛）。（例：scRNA 因缺包未做 doublet/未聚类 → 注释与 signature 取自 pre-QC raw、不可信、进不了 plan 声明的 stage2 单细胞准入；批次**与生物学混杂且未建模** → 差异不可信。注：批次不混杂 / 已作协变量建模 / plan 本就没要求去批次时**不校正反而对**，别误判成破坏）。**破坏下游 fitness 的，无关是否如实披露，升 P1**——别因"诚实边界"就当 P3 放行。**阻塞范围看它是否 `plan/spec` 声明的本阶段/下游准入必需件**：必需件有缺陷 → 阻塞该阶段放行；不在关键路径上的不合格件 → 不必阻塞全交付，但**须显式标注不可用、不得当合格件交付**。`present`（在不在）≠ `fit`（够不够进 plan 声明的下游用途），交付物核对两个都要答。
 
-机械兜底别只肉眼：`${CLAUDE_PLUGIN_ROOT:-$HOME/.claude}/harness/quality/limitation_register.py .`（逐个 limitation 要独立证据）、`.../mapping_fidelity.py`（受控词表 raw→mapped 折进率）。产出「方法保真表」：mandated 方法 → 实际 status → [严格/诚实边界/授权override/未披露降级/理由不实] + 证据（spec 锚定逐条、不抽样）。
+确定性脚本别只肉眼：`${CLAUDE_PLUGIN_ROOT:-$HOME/.claude}/harness/quality/mapping_fidelity.py`（受控词表 raw→mapped 折进率，**反射#2 强制、非兜底**）、`.../limitation_register.py .`（逐个 limitation 要独立证据）。产出两张表：①「方法保真表」mandated 方法 → 实际 status → [严格/诚实边界/授权override/未披露降级/理由不实] + 证据（spec 锚定逐条、不抽样）；②「raw→mapped 折进表」（有受控词表列的 stage 强制出）。
 
 ## 输出格式
 
