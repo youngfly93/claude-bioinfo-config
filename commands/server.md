@@ -1,7 +1,7 @@
 服务器: <compute-server>
-IP地址: 218.205.37.74
-端口: 5022
-账号: tl5009
-密码: bV7tbc5A
-Rstudio链接: 218.205.37.74:5087
+IP地址: <server-ip>
+端口: <ssh-port>
+账号: <user>
+密码: <local-only · 不入公开仓，真实值见本地 ~/.claude/commands/server.md>
+Rstudio链接: <server-ip>:<rstudio-port>
 R版本: 4.4.1
