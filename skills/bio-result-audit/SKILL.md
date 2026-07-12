@@ -40,7 +40,7 @@ description: >-
 6. 输出结构化审计报告，按 P0/P1/P2/P3 排序问题。
 7. 把每步完整发现实时写进 `audit/<module>.claude.md`（module 用 plan.md 任务名逐字、头记 audited_commit），只向主线程回一行状态摘要（防撞输出上限/超时丢进度，便于只补跑缺失模块）。
 
-严格只读：不重跑完整分析，不修改、删除、移动文件，不提交 git。
+严格只读：不重跑完整分析，不修改、删除、移动文件，不提交 git。**"只读"= 对交付物/源（`results/` `scripts/` `figures/` 报告 `plan.md` 源表）只读**；唯一的写例外是把自己的审计发现写进 `audit/<module>.claude.md`（第 7 步），`Bash` 也仅用于跑确定性检查脚本（如 `mapping_fidelity.py`）+ 只读复算——绝不动被审对象。
 所有结论必须标明事实依据、推断或建议。
 ```
 

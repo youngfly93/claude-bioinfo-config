@@ -15,7 +15,7 @@ description: >-
 
 > 完整交付场景优先用 `bio-deliver`。本 skill 是报告专项能力，可被 `bio-deliver` 编排，也可在只需要生成/修订 Word 报告时单独使用。
 >
-> **用 Opus 4.6 生成**：委派给 `bio-report-writer` 子代理——它的模型固定为 `claude-opus-4-6`，独立运行、不影响主会话模型；它按本 skill 的规则执行。
+> **用 Opus 4.6 生成**：委派给 `bio-report-writer` 子代理——它的模型固定为 `claude-opus-4-8`，独立运行、不影响主会话模型；它按本 skill 的规则执行。
 
 ## 前置准备
 

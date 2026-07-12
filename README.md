@@ -69,7 +69,6 @@
 | `agents/` | 自定义子代理：`bio-result-auditor`（只读审计）、`bio-report-writer`（出报告，固定 Opus 4.6） |
 | `statusline-command.sh` | 状态栏脚本（git 分支 + 配额进度条） |
 | `settings.local.json` | 权限白名单（Bash 命令 allow 规则） |
-| `my-skills/habit-analyzer/` | 自定义 skill（使用习惯分析） |
 
 ## 外部依赖（不含在本库）
 

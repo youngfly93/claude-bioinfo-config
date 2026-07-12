@@ -87,10 +87,11 @@ find <项目> -name '*.md' ! -path '*/.git/*' ! -name '._*' 2>/dev/null \
 # 无歧义垃圾（可扫）：系统/临时/缓存/锁/编译产物
 find <项目> \( -path '*/.git/*' -o -path '*/_archive/*' -o -path '*/.work/*' \) -prune -o \
   \( -name '._*' -o -name '~$*' -o -name '.DS_Store' -o -name 'Thumbs.db' \
-     -o -name '*.log' -o -name '*.tmp' -o -name '*.pyc' -o -name '.Rhistory' \
+     -o \( -name '*.log' ! -name '.nextflow.log' \) -o -name '*.tmp' -o -name '*.pyc' -o -name '.Rhistory' \
      -o -name '.RData' -o -name '*.swp' -o -name '*~' -o -name '__pycache__' \) -print 2>/dev/null
 ```
 - **可扫（无歧义）**：上面命中的系统/临时/缓存/锁/编译文件 → 拟移进 `.work/_swept_<日期>/`。
+- **provenance 日志碰不得**：`.nextflow.log`、Nextflow `trace*.txt`/`timeline*.html`、pipeline run log 是**执行溯源证据**（`bio-diagnose` 定位问题、结果审计追执行历史都要读）——**不当垃圾**，即便匹配 `*.log` 也别扫（上面 find 已排除 `.nextflow.log`；trace/timeline 本就不匹配 `*.log`，见到别手动归档）。
 - **只标记不移（有歧义）**：`*.rds`、`results/` 外的散落 `.tsv/.csv/.png`、非编号脚本、看不懂用途的大文件——**列出来问用户**，别自作主张移（可能是下游画图/报告要读的）。
 - **绝不碰**：硬边界里那批真源/数据/记录。
 
