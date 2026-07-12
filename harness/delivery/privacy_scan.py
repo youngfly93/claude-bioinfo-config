@@ -36,6 +36,8 @@ def scan(directory):
                 continue
             p = os.path.join(root, f)
             ext = os.path.splitext(f)[1].lower()
+            if ext not in TEXT_EXTS and ext not in OFFICE_EXTS:
+                continue
             try:
                 if ext in TEXT_EXTS:
                     _scan_text(open(p, encoding="utf-8", errors="ignore").read(), p, out)
@@ -44,8 +46,11 @@ def scan(directory):
                         for n in z.namelist():
                             if n.endswith(".xml"):
                                 _scan_text(z.read(n).decode("utf-8", "ignore"), p, out)
-            except Exception:
-                pass
+            except Exception as e:
+                # fail-closed：本该扫的文件扫不动（损坏/加密/异常格式）绝不当"干净"放行——
+                # 无法检查 ≠ 检查通过。升 P1，逼人工确认里面没泄漏。
+                out.append({"file": p, "severity": "P1", "code": "SCAN_UNREADABLE",
+                            "match": str(e)[:80], "pos": 0})
     return out
 
 

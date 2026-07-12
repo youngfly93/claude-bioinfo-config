@@ -21,19 +21,34 @@ EXCLUDE = {
     'delivery_manifest.tsv', 'delivery_md5.txt',
 }
 # 按 basename 模式拦的中间/日志/系统垃圾（fnmatch）——含 macOS AppleDouble `._*` 与 Excel 锁 `~$*`
-EXCLUDE_PATTERNS = ('*.log', '*.rds', '*.RData', '*.pyc', '*.tmp', '._*', '~$*')
+# 注意：`*.rds` 不在这里无条件拦——见 RDS_PATTERN。R 对象（Seurat/SCE/SummarizedExperiment/
+# 模型对象）在 scRNA/空间/多组学外包里常是**合同交付物**，一刀切静默丢会漏交客户要的东西。
+EXCLUDE_PATTERNS = ('*.log', '*.RData', '*.pyc', '*.tmp', '._*', '~$*')
+RDS_PATTERN = '*.rds'
 
-def should_exclude(path: str) -> bool:
+def _keep_rds(delivery_dir: str) -> bool:
+    """.rds 默认仍排除（多为大中间对象），但客户合同要 R 对象时可 opt-in 保留：
+    交付根放 `.keep_rds` 标记文件，或设环境变量 BIO_INCLUDE_RDS=1。"""
+    if os.environ.get("BIO_INCLUDE_RDS") == "1":
+        return True
+    return os.path.isfile(os.path.join(delivery_dir, ".keep_rds"))
+
+def should_exclude(path: str, keep_rds: bool = False) -> bool:
     parts = path.split(os.sep)
     if any(p in EXCLUDE for p in parts):
         return True
     base = parts[-1]
+    if fnmatch.fnmatch(base, RDS_PATTERN):
+        return not keep_rds   # rds：默认排除，opt-in 时保留
     return any(fnmatch.fnmatch(base, pat) for pat in EXCLUDE_PATTERNS)
 
 def pack(delivery_dir: str, project_name: str = "项目"):
     """打包为 Windows 兼容 ZIP；解压即得**单一干净根目录**（项目名_交付_DATE/，不带 delivery 外壳）。
-    返回 (zip_path, excluded)：excluded 为被机械排除的过程/中间文件相对路径列表（透明、不静默丢）。"""
+    返回 (zip_path, excluded, excluded_rds, keep_rds)：excluded 为被机械排除的过程/中间文件相对路径
+    列表（透明、不静默丢）；excluded_rds 为其中被排除的 .rds（可能是合同交付物，需醒目提示）；
+    keep_rds 表示本次是否 opt-in 保留了 .rds。"""
     delivery_dir = os.path.abspath(delivery_dir)
+    keep_rds = _keep_rds(delivery_dir)
     date_str = datetime.datetime.now().strftime("%Y%m%d")
     zip_name = f"{project_name}_交付_{date_str}.zip"
     zip_path = os.path.join(os.path.dirname(delivery_dir), zip_name)
@@ -50,6 +65,7 @@ def pack(delivery_dir: str, project_name: str = "项目"):
         src, root_name = delivery_dir, zip_name[:-4]  # 合成根 = 项目名_交付_DATE
 
     excluded = []
+    excluded_rds = []   # 被排除的 .rds 单独列出：可能是合同交付物，需醒目提示而非埋进长列表
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED, allowZip64=True) as zf:
         for root, dirs, files in os.walk(src):
             dirs[:] = [d for d in dirs if d not in EXCLUDE]
@@ -57,12 +73,14 @@ def pack(delivery_dir: str, project_name: str = "项目"):
                 full = os.path.join(root, f)
                 rel = os.path.relpath(full, src)
                 arcname = os.path.join(root_name, rel)
-                if should_exclude(arcname):
+                if should_exclude(arcname, keep_rds):
                     excluded.append(rel)
+                    if fnmatch.fnmatch(f, RDS_PATTERN):
+                        excluded_rds.append(rel)
                     continue
                 zf.write(full, arcname)
 
-    return zip_path, sorted(excluded)
+    return zip_path, sorted(excluded), sorted(excluded_rds), keep_rds
 
 def verify(zip_path: str) -> dict:
     """验证 ZIP 完整性，返回结果字典。"""
@@ -97,10 +115,16 @@ if __name__ == "__main__":
     import json
     cmd = sys.argv[1] if len(sys.argv) > 1 else "help"
     if cmd == "pack":
-        path, excluded = pack(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else "项目")
+        path, excluded, excluded_rds, keep_rds = pack(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else "项目")
+        # 被排除的 .rds 醒目告警：若是合同交付物（Seurat/SCE/模型对象），放 `.keep_rds` 或 BIO_INCLUDE_RDS=1 保留
+        if excluded_rds:
+            print(f"⚠ 排除了 {len(excluded_rds)} 个 .rds（默认按大中间对象排除）：{excluded_rds}", file=sys.stderr)
+            print("  若其中有客户合同要的 R 对象，交付根放 .keep_rds 或设 BIO_INCLUDE_RDS=1 后重打包。", file=sys.stderr)
         print(json.dumps({"zip_path": path,
                           "excluded_count": len(excluded),
-                          "excluded": excluded}, ensure_ascii=False))
+                          "excluded": excluded,
+                          "excluded_rds": excluded_rds,
+                          "kept_rds": keep_rds}, ensure_ascii=False))
     elif cmd == "verify":
         result = verify(sys.argv[2])
         print(json.dumps(result, ensure_ascii=False))

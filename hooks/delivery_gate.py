@@ -67,8 +67,13 @@ def main() -> int:
         print(f"bio-delivery-gate: proof status is {status}; not ready for final sending.", file=sys.stderr)
         return 2 if strict else 0
 
-    # 不只信 status：核对每条命令的退出码，挡住"手动 finalize PASS 但某步其实 exit≠0"
-    failed = [str(c.get("name")) for c in (proof.get("commands") or []) if c.get("exit_code") not in (0, None)]
+    # 不只信 status：核对每条命令的退出码，挡住"手动 finalize PASS 但某步其实 exit≠0"。
+    # 按名取【最新一条】记录（与 proof.py._pass_blockers 同款）——否则 fail→修复→重跑 后
+    # 历史那条 FAIL 记录会永久拦住已修好的交付（strict/临床模式真会误杀）。
+    latest = {}
+    for c in (proof.get("commands") or []):
+        latest[c.get("name")] = c
+    failed = [str(name) for name, c in latest.items() if c.get("exit_code") not in (0, None)]
     if failed:
         print(f"bio-delivery-gate: proof 记录有命令未通过(exit≠0): {', '.join(failed)}；修复后重跑再发。", file=sys.stderr)
         return 2 if strict else 0

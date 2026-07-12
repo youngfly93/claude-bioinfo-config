@@ -42,7 +42,9 @@ const FINDINGS = {
           evidence: { type: 'string' },
           file: { type: 'string' },
         },
-        required: ['severity', 'title'],
+        // evidence/file 必填——承审计 doctrine「发现必带可核实证据(file:line)」；
+        // 无证据的发现不该进对抗复核（否则复核的是空气）。
+        required: ['severity', 'title', 'evidence', 'file'],
       },
     },
   },
@@ -63,15 +65,23 @@ const scan = await agent(
 const modules = (scan && scan.modules) || []
 log(`待审模块 ${modules.length} 个`)
 
+// 模块名来自模型自由文本——直接拼进文件路径有路径穿越/非法字符/中文标点/同名覆盖风险。
+// 消毒成稳定 id 再用；文件名对齐 SHARED-AUDIT 标准 audit/<module>.<agent>.md（本 workflow=claude）。
+function safeModuleId(name, i) {
+  const id = String(name || '').toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 64)
+  return id || `module_${i}`
+}
+
+const modulesWithId = modules.map((m, i) => ({ ...m, _id: safeModuleId(m.name, i) }))
 const audited = await pipeline(
-  modules,
+  modulesWithId,
   // 阶段 1：每模块一个只读审计子代理（bio-result-auditor），发现落盘
   (m) => agent(
     `按 bio-result-audit 规则，对项目 ${proj} 的「${m.name}」模块做只读审计：对照 ${planHint}，` +
     `检查完整性 / 数据准确性 / 分析准确性 / 方法合理性 / 图表-数据一致性 / 参考版本；` +
-    `对承重数字做针对性复算（数字台账）。把完整发现写进 ${proj}/audit/${m.name}.md，本回只返回结构化发现清单。` +
+    `对承重数字做针对性复算（数字台账）。把完整发现写进 ${proj}/audit/${m._id}.claude.md，本回只返回结构化发现清单。` +
     `严格只读，不改/删文件。结果路径：${m.path}`,
-    { schema: FINDINGS, agentType: 'bio-result-auditor', label: `audit:${m.name}`, phase: 'Audit' }
+    { schema: FINDINGS, agentType: 'bio-result-auditor', label: `audit:${m._id}`, phase: 'Audit' }
   ),
   // 阶段 2：对每条 P0/P1 发现做对抗式复核（默认倾向"证伪"，第二种独立方法核实）
   (res, m) => parallel(
